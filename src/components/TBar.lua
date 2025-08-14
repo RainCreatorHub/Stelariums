@@ -20,10 +20,10 @@ end
 function TitleBar:createBar()
     self.BarFrame = Instance.new("Frame")
     self.BarFrame.Name = "TitleBar"
-    self.BarFrame.Size = UDim2.new(1, 0, 0, 40) -- Altura aumentada para 40px
+    self.BarFrame.Size = UDim2.new(1, 0, 0, 40)
     self.BarFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     self.BarFrame.BorderSizePixel = 0
-    self.BarFrame.ZIndex = 2 -- Para ficar na frente do fundo animado
+    self.BarFrame.ZIndex = 2
     self.BarFrame.Parent = self.windowFrame
 
     local bottomBorder = Instance.new("Frame")
@@ -36,7 +36,7 @@ function TitleBar:createBar()
 
     local IconLabel = Instance.new("ImageLabel")
     IconLabel.Name = "Icon"
-    IconLabel.Size = UDim2.new(0, 24, 0, 24) -- Ícone maior
+    IconLabel.Size = UDim2.new(0, 24, 0, 24)
     IconLabel.Position = UDim2.new(0, 12, 0.5, -12)
     IconLabel.BackgroundTransparency = 1
     IconLabel.Image = self.logo or (self.dependencies.Icons and self.dependencies.Icons.Shield) or ""
@@ -46,7 +46,7 @@ function TitleBar:createBar()
     TitleContainer.Name = "TitleContainer"
     TitleContainer.Size = UDim2.new(0, 0, 1, 0)
     TitleContainer.AutomaticSize = Enum.AutomaticSize.X
-    TitleContainer.Position = UDim2.new(0, 46, 0, 0) -- Posição ajustada
+    TitleContainer.Position = UDim2.new(0, 46, 0, 0)
     TitleContainer.BackgroundTransparency = 1
     TitleContainer.Parent = self.BarFrame
 
@@ -62,8 +62,8 @@ function TitleBar:createBar()
     TitleLabel.Size = UDim2.new(0, 0, 1, 0)
     TitleLabel.AutomaticSize = Enum.AutomaticSize.X
     TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Font = Enum.Font.GothamBold -- Fonte mais forte
-    TitleLabel.TextSize = 18 -- Tamanho maior
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextSize = 18
     TitleLabel.Text = self.title
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
