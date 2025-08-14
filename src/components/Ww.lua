@@ -13,7 +13,7 @@ function Window.new(config, dependencies)
     local self = setmetatable({}, Window)
     
     self.config = config or {}
-    self.config.Title = self.config.Title or "Stell UI"
+    self.config.Title = self.config.Title or "Stell"
     self.config.SubTitle = self.config.SubTitle or ""
     self.config.Logo = self.config.Logo or ""
     self.config.Theme = self.config.Theme or "Dark"
