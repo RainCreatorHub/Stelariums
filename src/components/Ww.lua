@@ -20,7 +20,7 @@ function Window.new(config, dependencies)
 
     self:createBaseUI()
     self:createTitleBar()
-    self:createGradientAnimation() -- A nova função que cria a mágica
+    self:createGradientAnimation()
     
     return self
 end
@@ -34,20 +34,25 @@ function Window:createBaseUI()
 
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "WindowFrame"
-    self.MainFrame.Size = UDim2.new(0, 550, 0, 400)
-    self.MainFrame.Position = UDim2.new(0.5, -275, 0.5, -200)
-    self.MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10) -- Base preta sólida
-    self.MainFrame.BorderSizePixel = 1 -- Borda sutil para definição
-    self.MainFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+    self.MainFrame.Size = UDim2.new(0, 550, 0, 420)
+    self.MainFrame.Position = UDim2.new(0.5, -275, 0.5, -210)
+    self.MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    self.MainFrame.BorderSizePixel = 0
     self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.ScreenGui
+
+    self.BackgroundFrame = Instance.new("Frame")
+    self.BackgroundFrame.Name = "BackgroundAnimation"
+    self.BackgroundFrame.Size = UDim2.new(1, 0, 1, 0)
+    self.BackgroundFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    self.BackgroundFrame.ZIndex = 0
+    self.BackgroundFrame.Parent = self.MainFrame
 
     self.TabsContainer = Instance.new("Frame")
     self.TabsContainer.Name = "TabsContainer"
     self.TabsContainer.Size = UDim2.new(1, 0, 0, 40)
-    self.TabsContainer.Position = UDim2.new(0, 0, 0, 30)
-    self.TabsContainer.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-    self.TabsContainer.BorderSizePixel = 0
+    self.TabsContainer.Position = UDim2.new(0, 0, 0, 40)
+    self.TabsContainer.BackgroundTransparency = 1
     self.TabsContainer.Parent = self.MainFrame
     
     local tabsLayout = Instance.new("UIListLayout")
@@ -63,8 +68,8 @@ function Window:createBaseUI()
 
     self.PagesContainer = Instance.new("Frame")
     self.PagesContainer.Name = "PagesContainer"
-    self.PagesContainer.Size = UDim2.new(1, 0, 1, -70)
-    self.PagesContainer.Position = UDim2.new(0, 0, 0, 70)
+    self.PagesContainer.Size = UDim2.new(1, 0, 1, -80)
+    self.PagesContainer.Position = UDim2.new(0, 0, 0, 80)
     self.PagesContainer.BackgroundTransparency = 1
     self.PagesContainer.Parent = self.MainFrame
 end
@@ -84,35 +89,31 @@ end
 function Window:createGradientAnimation()
     local gradient = Instance.new("UIGradient")
     gradient.Name = "AnimatedGradient"
-    gradient.Rotation = 45 -- Rotação diagonal para o efeito "subir para os cantos"
+    gradient.Rotation = 45
     gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 10)),      -- Preto (início, invisível)
-        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(150, 0, 20)),    -- Vermelho escuro, núcleo da animação
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 20, 40)),   -- Vermelho brilhante, pico
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(150, 0, 20)),    -- Vermelho escuro novamente
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10))       -- Preto (fim, invisível)
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 10)),
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(150, 0, 20)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 20, 40)),
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(150, 0, 20)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10))
     })
     gradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 1),   -- Transparente no início
-        NumberSequenceKeypoint.new(0.4, 0), -- Opaco no meio
-        NumberSequenceKeypoint.new(0.6, 0), -- Opaco no meio
-        NumberSequenceKeypoint.new(1, 1)    -- Transparente no fim
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.45, 0),
+        NumberSequenceKeypoint.new(0.55, 0),
+        NumberSequenceKeypoint.new(1, 1)
     })
-    gradient.Parent = self.MainFrame
+    gradient.Parent = self.BackgroundFrame
 
-    -- A animação em si
-    local speed = 0.3 -- Velocidade da animação (menor = mais rápido)
+    local speed = 0.3
     local connection
     connection = RunService.RenderStepped:Connect(function(dt)
         if not self.MainFrame or not self.MainFrame.Parent then
-            connection:Disconnect() -- Para o loop se a UI for destruída
+            connection:Disconnect()
             return
         end
-        
-        -- Usa o tempo (tick) para criar um loop contínuo e suave
         local cycle = (tick() % (1 / speed)) * speed
-        local offset = (cycle * 2) - 1 -- Mapeia o ciclo de [0, 1] para [-1, 1]
-        
+        local offset = (cycle * 2) - 1
         gradient.Offset = Vector2.new(offset, offset)
     end)
 end
