@@ -21,6 +21,7 @@ function Tab.new(config)
     
     self.name = config.Name
     self.icon = config.Icon
+    self.content = config.Content
     self.parent = config.Parent
     self.contentPage = config.ContentPage
     self.dependencies = config.Dependencies
@@ -60,6 +61,13 @@ function Tab:createButton()
         IconImage.Parent = self.Button
         self.Button.Text = "      " .. self.name .. "  "
     end
+    
+    if self.content then
+        local TooltipModule = self.dependencies.FetchModule("components/Tooltip.lua")
+        if TooltipModule then
+            TooltipModule.new(self.Button, self.content)
+        end
+    end
 end
 
 function Tab:SetActive(active)
@@ -79,6 +87,12 @@ function Tab:Section(config)
         Parent = self.contentPage,
         Dependencies = self.dependencies
     })
+    table.insert(self.elements, instance)
+    return instance
+end
+
+function Tab:AddParagraphI(config)
+    local instance = self.dependencies.ParagraphImageModule.new(self.contentPage, config)
     table.insert(self.elements, instance)
     return instance
 end
