@@ -13,3 +13,14 @@ local Window = Stell:MakeWindow({
   Logo = "rbxassetid://2983929993"
 })
 ```
+
+## Full Example
+``` lua
+local Stell = loadstring(game:HttpGet("https://raw.githubusercontent.com/RainCreatorHub/Stell/refs/heads/main/init.lua"))()
+
+local Window = Stell:MakeWindow({
+  Title = "Window!",
+  SubTitle = "SubTitle!",
+  Logo = ""
+})
+```
