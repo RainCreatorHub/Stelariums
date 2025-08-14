@@ -21,49 +21,67 @@ function TitleBar:createBar()
     self.BarFrame = Instance.new("Frame")
     self.BarFrame.Name = "TitleBar"
     self.BarFrame.Size = UDim2.new(1, 0, 0, 30)
-    self.BarFrame.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+    self.BarFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28) -- Cor de fundo base
     self.BarFrame.BorderSizePixel = 0
     self.BarFrame.Parent = self.windowFrame
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new(Color3.fromRGB(45, 45, 45), Color3.fromRGB(30, 30, 30))
+    gradient.Rotation = 90
+    gradient.Parent = self.BarFrame
+    
+    local bottomBorder = Instance.new("Frame")
+    bottomBorder.Name = "BottomBorder"
+    bottomBorder.Size = UDim2.new(1, 0, 0, 1)
+    bottomBorder.Position = UDim2.new(0, 0, 1, -1)
+    bottomBorder.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    bottomBorder.BorderSizePixel = 0
+    bottomBorder.Parent = self.BarFrame
 
     local IconLabel = Instance.new("ImageLabel")
     IconLabel.Name = "Icon"
     IconLabel.Size = UDim2.new(0, 20, 0, 20)
-    IconLabel.Position = UDim2.new(0, 5, 0.5, -10)
+    IconLabel.Position = UDim2.new(0, 10, 0.5, -10)
     IconLabel.BackgroundTransparency = 1
     IconLabel.Image = self.logo or (self.dependencies.Icons and self.dependencies.Icons.Shield) or ""
     IconLabel.Parent = self.BarFrame
+
+    local TitleContainer = Instance.new("Frame")
+    TitleContainer.Name = "TitleContainer"
+    TitleContainer.Size = UDim2.new(0, 0, 1, 0)
+    TitleContainer.AutomaticSize = Enum.AutomaticSize.X
+    TitleContainer.Position = UDim2.new(0, 38, 0, 0)
+    TitleContainer.BackgroundTransparency = 1
+    TitleContainer.Parent = self.BarFrame
+
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 6)
+    layout.Parent = TitleContainer
 
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "Title"
     TitleLabel.Size = UDim2.new(0, 0, 1, 0)
     TitleLabel.AutomaticSize = Enum.AutomaticSize.X
-    TitleLabel.Position = UDim2.new(0, 30, 0, 0)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamSemibold
     TitleLabel.Text = self.title
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.Parent = self.BarFrame
+    TitleLabel.Parent = TitleContainer
     
     local SubTitleLabel = Instance.new("TextLabel")
     SubTitleLabel.Name = "SubTitle"
     SubTitleLabel.Size = UDim2.new(0, 0, 1, 0)
     SubTitleLabel.AutomaticSize = Enum.AutomaticSize.X
-    SubTitleLabel.Position = UDim2.new(0, 5, 0, 0)
-    SubTitleLabel.AnchorPoint = Vector2.new(0, 0)
     SubTitleLabel.BackgroundTransparency = 1
     SubTitleLabel.Font = Enum.Font.Gotham
     SubTitleLabel.Text = self.subTitle
     SubTitleLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
     SubTitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    SubTitleLabel.Parent = TitleLabel
-    
-    local listLayout = Instance.new("UIListLayout")
-    listLayout.FillDirection = Enum.FillDirection.Horizontal
-    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    listLayout.Padding = UDim.new(0, 5)
-    listLayout.Parent = TitleLabel
+    SubTitleLabel.Parent = TitleContainer
 end
 
 function TitleBar:makeDraggable()
