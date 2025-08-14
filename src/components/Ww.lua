@@ -165,7 +165,8 @@ function Window:createGradientAnimation()
     end)
 end
 
-function Window:CreateTab(name, icon)
+function Window:MakeT(info)
+    info = info or {}
     local TabModule = self.dependencies.TabModule
     if not TabModule then
         warn("Stell Warning: Módulo de Aba (TB.lua) não carregado.")
@@ -173,7 +174,7 @@ function Window:CreateTab(name, icon)
     end
     
     local page = Instance.new("ScrollingFrame")
-    page.Name = name .. "_Page"
+    page.Name = (info.Name or "Tab") .. "_Page"
     page.Size = UDim2.new(1, 0, 1, 0)
     page.BackgroundTransparency = 1
     page.BorderSizePixel = 0
@@ -190,15 +191,16 @@ function Window:CreateTab(name, icon)
     layout.Parent = page
 
     local tabInstance = TabModule.new({
-        Name = name,
-        Icon = icon,
+        Name = info.Name,
+        Icon = info.Icon,
+        Content = info.Content,
         Parent = self.TabsContainer,
         ContentPage = page,
         Dependencies = self.dependencies
     })
     
     table.insert(self.tabs, tabInstance)
-    self.pages[name] = page
+    self.pages[info.Name] = page
     
     if not self.activeTab then
         tabInstance:SetActive(true)
