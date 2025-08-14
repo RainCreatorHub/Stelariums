@@ -1,6 +1,8 @@
 local Window = {}
 Window.__index = Window
 
+local RunService = game:GetService("RunService")
+
 local TitleBarModule
 local TabModule
 
@@ -18,6 +20,7 @@ function Window.new(config, dependencies)
 
     self:createBaseUI()
     self:createTitleBar()
+    self:createGradientAnimation() -- A nova função que cria a mágica
     
     return self
 end
@@ -33,8 +36,9 @@ function Window:createBaseUI()
     self.MainFrame.Name = "WindowFrame"
     self.MainFrame.Size = UDim2.new(0, 550, 0, 400)
     self.MainFrame.Position = UDim2.new(0.5, -275, 0.5, -200)
-    self.MainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
-    self.MainFrame.BorderSizePixel = 0
+    self.MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10) -- Base preta sólida
+    self.MainFrame.BorderSizePixel = 1 -- Borda sutil para definição
+    self.MainFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
     self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.ScreenGui
 
@@ -42,7 +46,7 @@ function Window:createBaseUI()
     self.TabsContainer.Name = "TabsContainer"
     self.TabsContainer.Size = UDim2.new(1, 0, 0, 40)
     self.TabsContainer.Position = UDim2.new(0, 0, 0, 30)
-    self.TabsContainer.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    self.TabsContainer.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
     self.TabsContainer.BorderSizePixel = 0
     self.TabsContainer.Parent = self.MainFrame
     
@@ -75,6 +79,42 @@ function Window:createTitleBar()
             Dependencies = self.dependencies
         })
     end
+end
+
+function Window:createGradientAnimation()
+    local gradient = Instance.new("UIGradient")
+    gradient.Name = "AnimatedGradient"
+    gradient.Rotation = 45 -- Rotação diagonal para o efeito "subir para os cantos"
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 10)),      -- Preto (início, invisível)
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(150, 0, 20)),    -- Vermelho escuro, núcleo da animação
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 20, 40)),   -- Vermelho brilhante, pico
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(150, 0, 20)),    -- Vermelho escuro novamente
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10))       -- Preto (fim, invisível)
+    })
+    gradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 1),   -- Transparente no início
+        NumberSequenceKeypoint.new(0.4, 0), -- Opaco no meio
+        NumberSequenceKeypoint.new(0.6, 0), -- Opaco no meio
+        NumberSequenceKeypoint.new(1, 1)    -- Transparente no fim
+    })
+    gradient.Parent = self.MainFrame
+
+    -- A animação em si
+    local speed = 0.3 -- Velocidade da animação (menor = mais rápido)
+    local connection
+    connection = RunService.RenderStepped:Connect(function(dt)
+        if not self.MainFrame or not self.MainFrame.Parent then
+            connection:Disconnect() -- Para o loop se a UI for destruída
+            return
+        end
+        
+        -- Usa o tempo (tick) para criar um loop contínuo e suave
+        local cycle = (tick() % (1 / speed)) * speed
+        local offset = (cycle * 2) - 1 -- Mapeia o ciclo de [0, 1] para [-1, 1]
+        
+        gradient.Offset = Vector2.new(offset, offset)
+    end)
 end
 
 function Window:CreateTab(name, icon)
