@@ -1,6 +1,6 @@
 local Stell = {}
 
-local baseURL = "https://raw.githubusercontent.com/RainCreatorHub/Stell/src/"
+local baseURL = "https://raw.githubusercontent.com/RainCreatorHub/Stell/refs/heads/main/src/"
 
 local function fetchModule(path)
     if Stell._moduleCache and Stell._moduleCache[path] then
