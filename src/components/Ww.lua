@@ -3,9 +3,6 @@ Window.__index = Window
 
 local RunService = game:GetService("RunService")
 
-local TitleBarModule
-local TabModule
-
 function Window.new(config, dependencies)
     local self = setmetatable({}, Window)
     
@@ -14,10 +11,8 @@ function Window.new(config, dependencies)
     self.tabs = {}
     self.pages = {}
     self.activeTab = nil
+    self.isMinimized = false
     
-    TitleBarModule = self.dependencies.FetchModule("components/TBar.lua")
-    TabModule = self.dependencies.FetchModule("components/TB.lua")
-
     self:createBaseUI()
     self:createTitleBar()
     self:createGradientAnimation()
@@ -77,14 +72,64 @@ function Window:createBaseUI()
 end
 
 function Window:createTitleBar()
+    local TitleBarModule = self.dependencies.FetchModule("components/TBar.lua")
     if TitleBarModule then
         self.titleBar = TitleBarModule.new({
             WindowFrame = self.MainFrame,
             Title = self.config.Title,
             SubTitle = self.config.SubTitle,
             Logo = self.config.Logo,
-            Dependencies = self.dependencies
+            Dependencies = self.dependencies,
+            MinimizeCallback = function() self:ToggleMinimize() end,
+            CloseCallback = function() self:ToggleMFVisibility() end
         })
+    end
+end
+
+function Window:ToggleMinimize()
+    self.isMinimized = not self.isMinimized
+    self.MainFrame.Visible = not self.isMinimized
+    
+    if not self.RestoreButton then
+        self.RestoreButton = Instance.new("TextButton")
+        self.RestoreButton.Name = "RestoreButton"
+        self.RestoreButton.Size = UDim2.new(0, 150, 0, 40)
+        self.RestoreButton.Position = self.MainFrame.Position
+        self.RestoreButton.Text = "Restaurar " .. self.config.Title
+        self.RestoreButton.Font = Enum.Font.GothamBold
+        self.RestoreButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        self.RestoreButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        self.RestoreButton.Parent = self.ScreenGui
+        
+        local gradient = Instance.new("UIGradient")
+        gradient.Color = ColorSequence.new(Color3.fromRGB(80, 10, 20), Color3.fromRGB(15, 15, 15))
+        gradient.Rotation = 0
+        gradient.Parent = self.RestoreButton
+        
+        self.RestoreButton.MouseButton1Click:Connect(function() self:ToggleMinimize() end)
+    end
+    
+    self.RestoreButton.Visible = self.isMinimized
+end
+
+function Window:MakeMF(info)
+    info = info or {}
+    local FloatingButtonModule = self.dependencies.FetchModule("components/MF.lua")
+    if FloatingButtonModule then
+        self.FloatingButtonInstance = FloatingButtonModule.new({
+            Name = info.Name or "Stell",
+            Format = info.Format or "Circle",
+            Dependencies = self.dependencies,
+            ToggleCallback = function() self:ToggleMFVisibility() end
+        })
+        self.FloatingButtonInstance.Visible = false
+    end
+end
+
+function Window:ToggleMFVisibility()
+    self.ScreenGui.Enabled = not self.ScreenGui.Enabled
+    if self.FloatingButtonInstance then
+        self.FloatingButtonInstance.Visible = not self.ScreenGui.Enabled
     end
 end
 
@@ -121,6 +166,7 @@ function Window:createGradientAnimation()
 end
 
 function Window:CreateTab(name, icon)
+    local TabModule = self.dependencies.TabModule
     if not TabModule then
         warn("Stell Warning: Módulo de Aba (TB.lua) não carregado.")
         return
