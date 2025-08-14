@@ -14,6 +14,15 @@ local Window = Stell:MakeWindow({
 })
 ```
 
+## Tab
+``` lua
+local Tab = Window:MakeT({
+  Name = "Tab!",
+  Content = "Tab content!",
+  Icob = ""
+})
+```
+
 ## Full Example
 ``` lua
 local Stell = loadstring(game:HttpGet("https://raw.githubusercontent.com/RainCreatorHub/Stell/refs/heads/main/init.lua"))()
