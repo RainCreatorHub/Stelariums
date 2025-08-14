@@ -6,7 +6,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 if Window then
-  Stell_Root:Destroy()
+  ScreenGui:Destroy()
 end
 
 function Window.new(config, dependencies)
