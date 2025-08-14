@@ -5,10 +5,6 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
-if Window then
-  ScreenGui:Destroy()
-end
-
 function Window.new(config, dependencies)
     local self = setmetatable({}, Window)
     
