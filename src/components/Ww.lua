@@ -53,6 +53,7 @@ function Window:createBaseUI()
     self.TabsContainer.Size = UDim2.new(1, 0, 0, 40)
     self.TabsContainer.Position = UDim2.new(0, 0, 0, 40)
     self.TabsContainer.BackgroundTransparency = 1
+    self.TabsContainer.ZIndex = 2
     self.TabsContainer.Parent = self.MainFrame
     
     local tabsLayout = Instance.new("UIListLayout")
@@ -71,6 +72,7 @@ function Window:createBaseUI()
     self.PagesContainer.Size = UDim2.new(1, 0, 1, -80)
     self.PagesContainer.Position = UDim2.new(0, 0, 0, 80)
     self.PagesContainer.BackgroundTransparency = 1
+    self.PagesContainer.ZIndex = 2
     self.PagesContainer.Parent = self.MainFrame
 end
 
