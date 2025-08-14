@@ -9,10 +9,12 @@ function TitleBar.new(config)
     self.subTitle = config.SubTitle
     self.logo = config.Logo
     self.dependencies = config.Dependencies
+    self.minimizeCallback = config.MinimizeCallback
+    self.closeCallback = config.CloseCallback
     
     self:createBar()
     self:makeDraggable()
-    self:attachMinimize()
+    self:createActionButtons()
     
     return self
 end
@@ -88,6 +90,47 @@ function TitleBar:createBar()
     SubTitleLabel.Parent = TitleContainer
 end
 
+function TitleBar:createActionButtons()
+    local buttonContainer = Instance.new("Frame")
+    buttonContainer.Size = UDim2.new(0, 60, 1, 0)
+    buttonContainer.Position = UDim2.new(1, -60, 0, 0)
+    buttonContainer.BackgroundTransparency = 1
+    buttonContainer.Parent = self.BarFrame
+    
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    layout.Padding = UDim.new(0, 5)
+    layout.Parent = buttonContainer
+
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 24, 0, 24)
+    closeButton.BackgroundColor3 = Color3.fromRGB(200, 40, 50)
+    closeButton.Text = "X"
+    closeButton.Font = Enum.Font.SourceSansBold
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.Parent = buttonContainer
+    
+    local minimizeButton = Instance.new("TextButton")
+    minimizeButton.Name = "MinimizeButton"
+    minimizeButton.Size = UDim2.new(0, 24, 0, 24)
+    minimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    minimizeButton.Text = "_"
+    minimizeButton.Font = Enum.Font.SourceSansBold
+    minimizeButton.TextColor3 = Color3.fromRGB(220, 220, 220)
+    minimizeButton.Parent = buttonContainer
+    
+    if self.minimizeCallback then
+        minimizeButton.MouseButton1Click:Connect(self.minimizeCallback)
+    end
+    
+    if self.closeCallback then
+        closeButton.MouseButton1Click:Connect(self.closeCallback)
+    end
+end
+
 function TitleBar:makeDraggable()
     local UserInputService = game:GetService("UserInputService")
     local dragging = false
@@ -116,16 +159,6 @@ function TitleBar:makeDraggable()
             end
         end
     end)
-end
-
-function TitleBar:attachMinimize()
-    local MinimizeModule = self.dependencies.FetchModule("components/MF.lua")
-    if MinimizeModule then
-        MinimizeModule.new({
-            WindowFrame = self.windowFrame,
-            TitleBar = self.BarFrame
-        })
-    end
 end
 
 return TitleBar
