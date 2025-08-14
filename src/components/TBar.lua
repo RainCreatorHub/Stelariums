@@ -24,7 +24,13 @@ function TitleBar:createBar()
     self.BarFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     self.BarFrame.BorderSizePixel = 0
     self.BarFrame.ZIndex = 2
+    self.BarFrame.ClipsDescendants = true
     self.BarFrame.Parent = self.windowFrame
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new(Color3.fromRGB(80, 10, 20), Color3.fromRGB(15, 15, 15))
+    gradient.Rotation = 90
+    gradient.Parent = self.BarFrame
 
     local bottomBorder = Instance.new("Frame")
     bottomBorder.Name = "BottomBorder"
