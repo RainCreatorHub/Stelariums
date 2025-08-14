@@ -2,22 +2,84 @@ local Window = {}
 Window.__index = Window
 
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 function Window.new(config, dependencies)
     local self = setmetatable({}, Window)
     
     self.config = config or {}
+    self.config.Title = self.config.Title or "Stell UI"
+    self.config.SubTitle = self.config.SubTitle or ""
+    self.config.Logo = self.config.Logo or ""
+    self.config.Theme = self.config.Theme or "Dark"
+    
     self.dependencies = dependencies
     self.tabs = {}
     self.pages = {}
     self.activeTab = nil
     self.isMinimized = false
+    self.connections = {}
+
+    self.theme = {
+        Dark = {
+            Primary = Color3.fromRGB(10, 10, 10),
+            Secondary = Color3.fromRGB(20, 20, 20),
+            Accent = Color3.fromRGB(150, 0, 20),
+            Text = Color3.fromRGB(255, 255, 255),
+            SubText = Color3.fromRGB(180, 180, 180),
+            ButtonHover = Color3.fromRGB(255, 60, 70)
+        },
+        Light = {
+            Primary = Color3.fromRGB(240, 240, 240),
+            Secondary = Color3.fromRGB(220, 220, 220),
+            Accent = Color3.fromRGB(200, 50, 50),
+            Text = Color3.fromRGB(0, 0, 0),
+            SubText = Color3.fromRGB(100, 100, 100),
+            ButtonHover = Color3.fromRGB(255, 80, 80)
+        }
+    }
     
     self:createBaseUI()
     self:createTitleBar()
     self:createGradientAnimation()
+    self:addShadowEffect()
     
     return self
+end
+
+function Window:getThemeColor(key)
+    return self.theme[self.config.Theme][key]
+end
+
+function Window:addShadowEffect()
+    local shadow = Instance.new("Frame")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, 10, 1, 10)
+    shadow.Position = UDim2.new(0, -5, 0, -5)
+    shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.BackgroundTransparency = 0.7
+    shadow.ZIndex = -1
+    shadow.Parent = self.MainFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = shadow
+end
+
+function Window:addHoverEffect(button, hoverColor, duration)
+    button.MouseEnter:Connect(function()
+        TweenService:Create(button, TweenInfo.new(duration or 0.2), {
+            BackgroundColor3 = hoverColor,
+            Size = UDim2.new(0, button.Size.X.Offset + 2, 0, button.Size.Y.Offset + 2)
+        }):Play()
+    end)
+    button.MouseLeave:Connect(function()
+        TweenService:Create(button, TweenInfo.new(duration or 0.2), {
+            BackgroundColor3 = self:getThemeColor("Secondary"),
+            Size = UDim2.new(0, button.Size.X.Offset - 2, 0, button.Size.Y.Offset - 2)
+        }):Play()
+    end)
 end
 
 function Window:createBaseUI()
@@ -31,15 +93,19 @@ function Window:createBaseUI()
     self.MainFrame.Name = "WindowFrame"
     self.MainFrame.Size = UDim2.new(0, 550, 0, 420)
     self.MainFrame.Position = UDim2.new(0.5, -275, 0.5, -210)
-    self.MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    self.MainFrame.BackgroundColor3 = self:getThemeColor("Primary")
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.ScreenGui
 
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = self.MainFrame
+
     self.BackgroundFrame = Instance.new("Frame")
     self.BackgroundFrame.Name = "BackgroundAnimation"
     self.BackgroundFrame.Size = UDim2.new(1, 0, 1, 0)
-    self.BackgroundFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    self.BackgroundFrame.BackgroundColor3 = self:getThemeColor("Primary")
     self.BackgroundFrame.ZIndex = 0
     self.BackgroundFrame.Parent = self.MainFrame
 
@@ -81,13 +147,22 @@ function Window:createTitleBar()
             Logo = self.config.Logo,
             Dependencies = self.dependencies,
             MinimizeCallback = function() self:ToggleMinimize() end,
-            CloseCallback = function() self:ToggleMFVisibility() end
+            CloseCallback = function() self:ToggleMFVisibility() end,
+            Theme = self.config.Theme
         })
     end
 end
 
 function Window:ToggleMinimize()
     self.isMinimized = not self.isMinimized
+    
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    if self.isMinimized then
+        TweenService:Create(self.MainFrame, tweenInfo, {Size = UDim2.new(0, 550, 0, 0), BackgroundTransparency = 1}):Play()
+    else
+        TweenService:Create(self.MainFrame, tweenInfo, {Size = UDim2.new(0, 550, 0, 420), BackgroundTransparency = 0}):Play()
+    end
+    
     self.MainFrame.Visible = not self.isMinimized
     
     if not self.RestoreButton then
@@ -97,16 +172,21 @@ function Window:ToggleMinimize()
         self.RestoreButton.Position = self.MainFrame.Position
         self.RestoreButton.Text = "Restaurar " .. self.config.Title
         self.RestoreButton.Font = Enum.Font.GothamBold
-        self.RestoreButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        self.RestoreButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        self.RestoreButton.TextColor3 = self:getThemeColor("Text")
+        self.RestoreButton.BackgroundColor3 = self:getThemeColor("Secondary")
         self.RestoreButton.Parent = self.ScreenGui
         
         local gradient = Instance.new("UIGradient")
-        gradient.Color = ColorSequence.new(Color3.fromRGB(80, 10, 20), Color3.fromRGB(15, 15, 15))
+        gradient.Color = ColorSequence.new(self:getThemeColor("Accent"), self:getThemeColor("Primary"))
         gradient.Rotation = 0
         gradient.Parent = self.RestoreButton
         
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 8)
+        corner.Parent = self.RestoreButton
+        
         self.RestoreButton.MouseButton1Click:Connect(function() self:ToggleMinimize() end)
+        self:addHoverEffect(self.RestoreButton, self:getThemeColor("ButtonHover"))
     end
     
     self.RestoreButton.Visible = self.isMinimized
@@ -127,7 +207,8 @@ function Window:MakeMF(info)
 end
 
 function Window:ToggleMFVisibility()
-    self.ScreenGui.Enabled = not self.ScreenGui.Enabled
+    local targetTransparency = self.ScreenGui.Enabled and 1 or 0
+    TweenService:Create(self.ScreenGui, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Enabled = not self.ScreenGui.Enabled}):Play()
     if self.FloatingButtonInstance then
         self.FloatingButtonInstance.Visible = not self.ScreenGui.Enabled
     end
@@ -138,31 +219,21 @@ function Window:createGradientAnimation()
     gradient.Name = "AnimatedGradient"
     gradient.Rotation = 45
     gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 10)),
-        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(150, 0, 20)),
+        ColorSequenceKeypoint.new(0, self:getThemeColor("Primary")),
+        ColorSequenceKeypoint.new(0.3, self:getThemeColor("Accent")),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 20, 40)),
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(150, 0, 20)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10))
+        ColorSequenceKeypoint.new(0.7, self:getThemeColor("Accent")),
+        ColorSequenceKeypoint.new(1, self:getThemeColor("Primary"))
     })
     gradient.Transparency = NumberSequence.new({
         NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(0.45, 0),
-        NumberSequenceKeypoint.new(0.55, 0),
+        NumberSequenceKeypoint.new(0.4, 0),
+        NumberSequenceKeypoint.new(0.6, 0),
         NumberSequenceKeypoint.new(1, 1)
     })
     gradient.Parent = self.BackgroundFrame
-
-    local speed = 0.3
-    local connection
-    connection = RunService.RenderStepped:Connect(function(dt)
-        if not self.MainFrame or not self.MainFrame.Parent then
-            connection:Disconnect()
-            return
-        end
-        local cycle = (tick() % (1 / speed)) * speed
-        local offset = (cycle * 2) - 1
-        gradient.Offset = Vector2.new(offset, offset)
-    end)
+    local tweenInfo = TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true)
+    TweenService:Create(gradient, tweenInfo, {Offset = Vector2.new(-2, -2)}):Play()
 end
 
 function Window:MakeT(info)
@@ -179,7 +250,7 @@ function Window:MakeT(info)
     page.BackgroundTransparency = 1
     page.BorderSizePixel = 0
     page.Visible = false
-    page.CanvasSize = UDim2.new(0,0,0,0)
+    page.CanvasSize = UDim2.new(0, 0, 0, 0)
     page.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
     page.ScrollBarThickness = 6
     page.Parent = self.PagesContainer
@@ -196,7 +267,8 @@ function Window:MakeT(info)
         Content = info.Content,
         Parent = self.TabsContainer,
         ContentPage = page,
-        Dependencies = self.dependencies
+        Dependencies = self.dependencies,
+        Theme = self.config.Theme
     })
     
     table.insert(self.tabs, tabInstance)
@@ -214,9 +286,17 @@ function Window:MakeT(info)
         end
         tabInstance:SetActive(true)
         self.activeTab = tabInstance
+        TweenService:Create(page, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 0}):Play()
     end)
     
     return tabInstance
+end
+
+function Window:Destroy()
+    for _, conn in ipairs(self.connections) do
+        conn:Disconnect()
+    end
+    self.ScreenGui:Destroy()
 end
 
 return Window
