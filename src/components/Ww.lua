@@ -3,8 +3,6 @@ Window.__index = Window
 
 local TitleBarModule
 local TabModule
-local SectionModule
-local ParagraphImageModule
 
 function Window.new(config, dependencies)
     local self = setmetatable({}, Window)
@@ -12,12 +10,11 @@ function Window.new(config, dependencies)
     self.config = config or {}
     self.dependencies = dependencies
     self.tabs = {}
+    self.pages = {}
     self.activeTab = nil
     
     TitleBarModule = self.dependencies.FetchModule("components/TBar.lua")
     TabModule = self.dependencies.FetchModule("components/TB.lua")
-    SectionModule = self.dependencies.FetchModule("elements/Section.lua")
-    ParagraphImageModule = self.dependencies.FetchModule("elements/ImageElement/Paragraph.Image.lua")
 
     self:createBaseUI()
     self:createTitleBar()
@@ -34,33 +31,38 @@ function Window:createBaseUI()
 
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "WindowFrame"
-    self.MainFrame.Size = UDim2.new(0, 520, 0, 380)
-    self.MainFrame.Position = UDim2.new(0.5, -260, 0.5, -190)
+    self.MainFrame.Size = UDim2.new(0, 550, 0, 400)
+    self.MainFrame.Position = UDim2.new(0.5, -275, 0.5, -200)
     self.MainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
     self.MainFrame.BorderSizePixel = 0
+    self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.ScreenGui
 
     self.TabsContainer = Instance.new("Frame")
     self.TabsContainer.Name = "TabsContainer"
-    self.TabsContainer.Size = UDim2.new(0, 120, 1, -30)
+    self.TabsContainer.Size = UDim2.new(1, 0, 0, 40)
     self.TabsContainer.Position = UDim2.new(0, 0, 0, 30)
     self.TabsContainer.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     self.TabsContainer.BorderSizePixel = 0
     self.TabsContainer.Parent = self.MainFrame
     
     local tabsLayout = Instance.new("UIListLayout")
-    tabsLayout.Padding = UDim.new(0, 5)
-    tabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    tabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabsLayout.FillDirection = Enum.FillDirection.Horizontal
+    tabsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    tabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    tabsLayout.Padding = UDim.new(0, 10)
     tabsLayout.Parent = self.TabsContainer
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.Parent = self.TabsContainer
 
-    self.ContentContainer = Instance.new("Frame")
-    self.ContentContainer.Name = "ContentContainer"
-    self.ContentContainer.Size = UDim2.new(1, -120, 1, -30)
-    self.ContentContainer.Position = UDim2.new(0, 120, 0, 30)
-    self.ContentContainer.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
-    self.ContentContainer.BorderSizePixel = 0
-    self.ContentContainer.Parent = self.MainFrame
+    self.PagesContainer = Instance.new("Frame")
+    self.PagesContainer.Name = "PagesContainer"
+    self.PagesContainer.Size = UDim2.new(1, 0, 1, -70)
+    self.PagesContainer.Position = UDim2.new(0, 0, 0, 70)
+    self.PagesContainer.BackgroundTransparency = 1
+    self.PagesContainer.Parent = self.MainFrame
 end
 
 function Window:createTitleBar()
@@ -81,19 +83,33 @@ function Window:CreateTab(name, icon)
         return
     end
     
+    local page = Instance.new("ScrollingFrame")
+    page.Name = name .. "_Page"
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.BorderSizePixel = 0
+    page.Visible = false
+    page.CanvasSize = UDim2.new(0,0,0,0)
+    page.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+    page.ScrollBarThickness = 6
+    page.Parent = self.PagesContainer
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 15)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Parent = page
+
     local tabInstance = TabModule.new({
         Name = name,
         Icon = icon,
         Parent = self.TabsContainer,
-        ContentParent = self.ContentContainer,
-        Dependencies = {
-            Icons = self.dependencies.Icons,
-            SectionModule = SectionModule,
-            ParagraphImageModule = ParagraphImageModule
-        }
+        ContentPage = page,
+        Dependencies = self.dependencies
     })
     
     table.insert(self.tabs, tabInstance)
+    self.pages[name] = page
     
     if not self.activeTab then
         tabInstance:SetActive(true)
