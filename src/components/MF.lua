@@ -4,7 +4,6 @@ MinimizeFloating.__index = MinimizeFloating
 function MinimizeFloating.new(config)
     local self = setmetatable({}, MinimizeFloating)
     
-    self.parent = config.Parent
     self.name = config.Name
     self.format = config.Format
     self.dependencies = config.Dependencies
@@ -17,12 +16,19 @@ function MinimizeFloating.new(config)
 end
 
 function MinimizeFloating:createFloatingButton()
+    local holder = Instance.new("ScreenGui")
+    holder.Name = "Stell_FloatingButtonHolder"
+    holder.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    holder.DisplayOrder = 999
+    holder.ResetOnSpawn = false
+    holder.Parent = gethui and gethui() or game:GetService("CoreGui")
+
     self.FloatingFrame = Instance.new("Frame")
     self.FloatingFrame.Name = "FloatingButtonHolder"
     self.FloatingFrame.Size = UDim2.new(0, 100, 0, 40)
     self.FloatingFrame.Position = UDim2.new(0, 20, 1, -60)
     self.FloatingFrame.BackgroundTransparency = 1
-    self.FloatingFrame.Parent = self.parent
+    self.FloatingFrame.Parent = holder
 
     local button = Instance.new("TextButton")
     button.Name = "FloatingToggleButton"
