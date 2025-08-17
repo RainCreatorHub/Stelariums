@@ -1,100 +1,64 @@
 local Tab = {}
-Tab.__index = Tab
 
-local ElementBuilder = {}
-function ElementBuilder:__index(key)
-    local moduleName = key:sub(1,1):upper() .. key:sub(2):lower() .. "Module"
-    local elementModule = self.dependencies[moduleName]
+function Tab.new(tabName, tabsContainer, contentContainer, dependencies)
+    local fetchModule = dependencies.FetchModule
+    local tabObject = {}
+    local yPadding = 10
+    local currentY = yPadding
 
-    if elementModule then
-        return function(config)
-            config = config or {}
-            local instance = elementModule.new(self.container, config)
-            table.insert(self.elements, instance)
-            return instance
+    local contentPage = Instance.new("ScrollingFrame")
+    contentPage.Name = tabName .. "_Content"
+    contentPage.Size = UDim2.new(1, 0, 1, 0)
+    contentPage.BackgroundTransparency = 1
+    contentPage.BorderSizePixel = 0
+    contentPage.Visible = false
+    contentPage.Parent = contentContainer
+    contentPage.CanvasSize = UDim2.new(0, 0, 0, 0)
+    contentPage.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+    contentPage.ScrollBarThickness = 6
+
+    local tabButton = Instance.new("TextButton")
+    tabButton.Name = tabName .. "_Button"
+    tabButton.Size = UDim2.new(1, -10, 0, 30)
+    local numExistingTabs = #tabsContainer:GetChildren()
+    tabButton.Position = UDim2.new(0.5, -tabButton.Size.X.Offset / 2, 0, 5 + (numExistingTabs * 35))
+    tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    tabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+    tabButton.Text = tabName
+    tabButton.Font = Enum.Font.SourceSans
+    tabButton.TextSize = 14
+    tabButton.AutoButtonColor = false
+    tabButton.Parent = tabsContainer
+
+    tabObject.Button = tabButton
+
+    function tabObject:Activate()
+        contentPage.Visible = true
+        tabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    end
+
+    function tabObject:Deactivate()
+        contentPage.Visible = false
+        tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    end
+
+    local function AddElementToLayout(elementInstance)
+        elementInstance.Position = UDim2.new(0.5, -elementInstance.Size.X.Offset / 2, 0, currentY)
+        currentY = currentY + elementInstance.Size.Y.Offset + yPadding
+        contentPage.CanvasSize = UDim2.new(0, 0, 0, currentY)
+        elementInstance.Parent = contentPage
+    end
+
+    function tabObject:AddButton(options)
+        local ButtonElement = fetchModule("elements/Button.lua")
+        if ButtonElement then
+            local newButton = ButtonElement.new(options)
+            AddElementToLayout(newButton)
         end
+        return tabObject
     end
-end
 
-function Tab.new(config)
-    local self = setmetatable({}, Tab)
-    
-    self.name = config.Name
-    self.icon = config.Icon
-    self.content = config.Content
-    self.parent = config.Parent
-    self.contentPage = config.ContentPage
-    self.dependencies = config.Dependencies
-    self.elements = {}
-    
-    self:createButton()
-    
-    local builder = {
-        container = self.contentPage,
-        dependencies = self.dependencies,
-        elements = self.elements
-    }
-    setmetatable(self, {__index = getmetatable(self).__index or self, __index = ElementBuilder})
-    
-    return self
-end
-
-function Tab:createButton()
-    self.Button = Instance.new("TextButton")
-    self.Button.Name = self.name
-    self.Button.Size = UDim2.new(0, 0, 0, 30)
-    self.Button.AutomaticSize = Enum.AutomaticSize.X
-    self.Button.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    self.Button.Text = "  " .. self.name .. "  "
-    self.Button.Font = Enum.Font.Gotham
-    self.Button.TextColor3 = Color3.fromRGB(160, 160, 160)
-    self.Button.TextXAlignment = Enum.TextXAlignment.Left
-    self.Button.AutoButtonColor = false
-    self.Button.Parent = self.parent
-    
-    if self.icon and self.dependencies.Icons and self.dependencies.Icons[self.icon] then
-        local IconImage = Instance.new("ImageLabel")
-        IconImage.Size = UDim2.new(0, 18, 0, 18)
-        IconImage.Position = UDim2.new(0, 8, 0.5, -9)
-        IconImage.BackgroundTransparency = 1
-        IconImage.Image = self.dependencies.Icons[self.icon]
-        IconImage.Parent = self.Button
-        self.Button.Text = "      " .. self.name .. "  "
-    end
-    
-    if self.content then
-        local TooltipModule = self.dependencies.FetchModule("components/Tooltip.lua")
-        if TooltipModule then
-            TooltipModule.new(self.Button, self.content)
-        end
-    end
-end
-
-function Tab:SetActive(active)
-    self.contentPage.Visible = active
-    if active then
-        self.Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-        self.Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    else
-        self.Button.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-        self.Button.TextColor3 = Color3.fromRGB(160, 160, 160)
-    end
-end
-
-function Tab:Section(config)
-    local instance = self.dependencies.SectionModule.new({
-        Title = config.Title,
-        Parent = self.contentPage,
-        Dependencies = self.dependencies
-    })
-    table.insert(self.elements, instance)
-    return instance
-end
-
-function Tab:AddParagraphI(config)
-    local instance = self.dependencies.ParagraphImageModule.new(self.contentPage, config)
-    table.insert(self.elements, instance)
-    return instance
+    return tabObject
 end
 
 return Tab
