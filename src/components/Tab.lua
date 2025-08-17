@@ -1,72 +1,65 @@
 local Tab = {}
 Tab.__index = Tab
 
-function Tab.new(tabName, tabDescription, tabsContainer, contentContainer, dependencies)
-    local fetchModule = dependencies.FetchModule
-    
-    local contentPage = Instance.new("ScrollingFrame")
-    contentPage.Name = tabName .. "_Content"
-    contentPage.Size = UDim2.new(1, 0, 1, 0)
-    contentPage.BackgroundTransparency = 1
-    contentPage.BorderSizePixel = 0
-    contentPage.Visible = false
-    contentPage.Parent = contentContainer
-    contentPage.CanvasSize = UDim2.new(0, 0, 0, 0)
-    contentPage.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
-    contentPage.ScrollBarThickness = 6
+function Tab.new(name, description, dependencies)
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "Stell_Tab_Container"
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "Tab"
+    mainFrame.Size = UDim2.new(0, 120, 0, 40)
+    mainFrame.Position = UDim2.new(0, 0, 0, 50)
+    mainFrame.BackgroundTransparency = 1
+    mainFrame.Parent = screenGui
 
     local tabButton = Instance.new("TextButton")
-    tabButton.Name = tabName .. "_Button"
-    tabButton.Size = UDim2.new(1, -10, 0, 30)
-    local numExistingTabs = #tabsContainer:GetChildren()
-    tabButton.Position = UDim2.new(0.5, -tabButton.Size.X.Offset / 2, 0, 5 + (numExistingTabs * 35))
+    tabButton.Name = name or "Tab"
+    tabButton.Size = UDim2.new(1, 0, 1, 0)
     tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     tabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
-    tabButton.Text = tabName
+    tabButton.Text = name or "Tab"
     tabButton.Font = Enum.Font.SourceSans
     tabButton.TextSize = 14
-    tabButton.AutoButtonColor = false
-    tabButton.Parent = tabsContainer
+    tabButton.Parent = mainFrame
 
-    if tabDescription ~= "" then
-        tabButton.Tooltip = tabDescription
+    if description and description ~= "" then
+        tabButton.Tooltip = description
     end
 
     local tabInstance = {
+        GUI = screenGui,
+        Frame = mainFrame,
         Button = tabButton,
-        _contentPage = contentPage,
-        _yPadding = 10,
-        _currentY = 10,
-        _fetchModule = fetchModule
+        _dependencies = dependencies
     }
 
     return setmetatable(tabInstance, Tab)
 end
 
-function Tab:Activate()
-    self._contentPage.Visible = true
-    self.Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-end
-
-function Tab:Deactivate()
-    self._contentPage.Visible = false
-    self.Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-end
-
-function Tab:_addElementToLayout(elementInstance)
-    elementInstance.Position = UDim2.new(0.5, -elementInstance.Size.X.Offset / 2, 0, self._currentY)
-    self._currentY = self._currentY + elementInstance.Size.Y.Offset + self._yPadding
-    self._contentPage.CanvasSize = UDim2.new(0, 0, 0, self._currentY)
-    elementInstance.Parent = self._contentPage
-end
-
-function Tab:AddButton(options)
-    local ButtonElement = self._fetchModule("elements/Button.lua")
+function Tab:AddButton(text, callback)
+    local fetchModule = self._dependencies.FetchModule
+    local ButtonElement = fetchModule("elements/Button.lua")
+    
     if ButtonElement then
-        local newButton = ButtonElement.new(options)
-        self:_addElementToLayout(newButton)
+        local newButton = ButtonElement.new(text, callback)
+        newButton.GUI.Parent = self.Frame
+        newButton.GUI.Enabled = true
     end
+    
     return self
+end
+
+function Tab:AddSection(info)
+    local fetchModule = self._dependencies.FetchModule
+    local SectionElement = fetchModule("elements/Section.lua")
+
+    if SectionElement then
+        local newSection = SectionElement.new(info)
+        newSection.GUI.Parent = self.Frame
+        newSection.GUI.Enabled = true
+        return newSection
+    end
 end
 
 return Tab
