@@ -1,4 +1,5 @@
 local Window = {}
+Window.__index = Window
 
 function Window.new(config, dependencies)
     local fetchModule = dependencies.FetchModule
@@ -7,7 +8,7 @@ function Window.new(config, dependencies)
     local Tab = fetchModule("components/Tab.lua")
 
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "Stell_Window"
+    screenGui.Name = "Stell"
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screenGui.Parent = game:GetService("CoreGui")
 
@@ -38,29 +39,46 @@ function Window.new(config, dependencies)
     contentContainer.BorderSizePixel = 0
     contentContainer.Parent = mainFrame
 
-    local windowInstance = {}
-    local activeTabs = {}
-    local activeTab = nil
+    local windowInstance = {
+        _activeTabs = {},
+        _activeTab = nil,
+        _dependencies = dependencies,
+        _containers = {
+            Tabs = tabsContainer,
+            Content = contentContainer
+        },
+        _modules = {
+            Tab = Tab
+        }
+    }
+    
+    return setmetatable(windowInstance, Window)
+end
 
-    function windowInstance:AddTab(tabName)
-        local newTab = Tab.new(tabName, tabsContainer, contentContainer, dependencies)
-        table.insert(activeTabs, newTab)
+function Window:MakeTab(tabInfo)
+    tabInfo = tabInfo or {}
+    local tabName = tabInfo.Name or "Tab"
+    local tabDescription = tabInfo.Description or ""
 
-        newTab.Button.MouseButton1Click:Connect(function()
-            if activeTab then activeTab:Deactivate() end
-            newTab:Activate()
-            activeTab = newTab
-        end)
+    local TabModule = self._modules.Tab
+    local newTab = TabModule.new(tabName, tabDescription, self._containers.Tabs, self._containers.Content, self._dependencies)
+    
+    table.insert(self._activeTabs, newTab)
 
-        if #activeTabs == 1 then
-            newTab:Activate()
-            activeTab = newTab
+    newTab.Button.MouseButton1Click:Connect(function()
+        if self._activeTab then
+            self._activeTab:Deactivate()
         end
+        newTab:Activate()
+        self._activeTab = newTab
+    end)
 
-        return newTab
+    if #self._activeTabs == 1 then
+        newTab:Activate()
+        self._activeTab = newTab
     end
 
-    return windowInstance
+    return newTab
 end
 
 return Window
