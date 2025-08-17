@@ -27,16 +27,7 @@ local function fetchModule(path)
     return nil
 end
 
-function Stell:MakeWindow(info)
-    info = info or {}
-    
-    local config = {
-        Title = info.Title or "Window",
-        SubTitle = info.SubTitle or "",
-        Logo = info.Logo or "",
-        Size = UDim2.new(0, 500, 0, 350)
-    }
-
+function Stell:MakeWindow(title, subTitle, logo, size)
     local WindowModule = fetchModule("components/Window.lua")
 
     if not WindowModule then
@@ -48,7 +39,7 @@ function Stell:MakeWindow(info)
         FetchModule = fetchModule
     }
     
-    local windowInstance = WindowModule.new(config, dependencies)
+    local windowInstance = WindowModule.new(title, subTitle, logo, size, dependencies)
     
     return windowInstance
 end
