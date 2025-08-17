@@ -1,6 +1,6 @@
 local Stell = {}
 
-local baseURL = "https://raw.githubusercontent.com/RainCreatorHub/Stell/refs/heads/main/src/"
+local baseURL = "https://raw.githubusercontent.com/RainCreatorHub/Stell/main/src/"
 
 local function fetchModule(path)
     if Stell._moduleCache and Stell._moduleCache[path] then
@@ -33,22 +33,22 @@ function Stell:MakeWindow(info)
     local config = {
         Title = info.Title or "Window",
         SubTitle = info.SubTitle or "",
-        Logo = info.Logo or ""
+        Logo = info.Logo or "",
+        Size = UDim2.new(0, 500, 0, 350)
     }
 
-    local IconsModule = fetchModule("Icons/Lucide.Icons.lua")
-    local WindowModule = fetchModule("components/Ww.lua")
+    local WindowModule = fetchModule("components/Window.lua")
 
     if not WindowModule then
-        error("Stell FATAL: O módulo principal da Janela (Ww.lua) não pôde ser carregado. A UI não pode ser iniciada.")
+        error("Stell FATAL: O módulo principal da Janela (Window.lua) não pôde ser carregado. A UI não pode ser iniciada.")
         return
     end
     
-    local windowInstance = WindowModule.new(config, {
-        Icons = IconsModule,
-        BaseURL = baseURL,
+    local dependencies = {
         FetchModule = fetchModule
-    })
+    }
+    
+    local windowInstance = WindowModule.new(config, dependencies)
     
     return windowInstance
 end
