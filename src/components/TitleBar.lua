@@ -1,4 +1,5 @@
 local TitleBar = {}
+TitleBar.__index = TitleBar
 
 function TitleBar.new(parentFrame, config)
     local barFrame = Instance.new("Frame")
