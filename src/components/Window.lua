@@ -1,90 +1,80 @@
 -- Stell UI Library | Created by Grok
--- Version: 1.3.1 (Executor-Friendly)
--- Description: A modular UI library for creating customizable windows, tabs, and buttons in Roblox,
---              with text-based tabs (no icons), enhanced layouts, and detailed functionality.
--- Last Updated: August 19, 2025, 07:21 PM -03
+-- Version: 1.1
+-- Description: A modular UI library for creating customizable windows, tabs, and buttons in Roblox, without animation features.
 
-local Players = game:GetService("Players") -- Service to access player data
-local TweenService = game:GetService("TweenService") -- Service for smooth color transitions
-local UserInputService = game:GetService("UserInputService") -- Service to handle user input
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
--- Get the local player and their PlayerGui for UI rendering
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Define the main Stell library table
+-- Stell Library
 local Stell = {}
 
--- Default Configuration Table
--- This table contains all default settings for windows, tabs, and buttons
+-- Default Configuration
 Stell.DefaultConfig = {
-    WindowTitle = "Stell Interface", -- Default window title
-    WindowSubtitle = "", -- Default subtitle (empty by default)
-    Theme = "Dark", -- Default theme ("Dark" or "Light")
-    Logo = "", -- Default logo image (rbxassetid, empty by default)
-    Resizable = true, -- Enable window resizing
-    Transparency = false, -- Enable window transparency
-    DefaultOpened = true, -- Window visible by default
-    DefaultSize = {550, 400}, -- Default width and height (in pixels)
-    MinSize = {350, 250}, -- Minimum allowable size
-    MaxSize = {900, 700}, -- Maximum allowable size
-    ToggleKey = Enum.KeyCode.F, -- Key to toggle window visibility
-
-    -- Color schemes for different themes
+    WindowTitle = "Window",
+    WindowSubtitle = "",
+    Theme = "Dark",
+    Logo = "",
+    Resizable = true,
+    Transparency = false,
+    DefaultOpened = true,
+    DefaultSize = {500, 350},
+    MinSize = {300, 200},
+    MaxSize = {800, 600},
+    ToggleKey = Enum.KeyCode.F,
     Colors = {
         Dark = {
-            Background = Color3.fromRGB(28, 29, 32), -- Main window background
-            Header = Color3.fromRGB(35, 37, 40), -- Header background
-            PrimaryText = Color3.fromRGB(255, 255, 255), -- Main text color
-            SecondaryText = Color3.fromRGB(200, 200, 200), -- Secondary text color (e.g., descriptions)
-            Button = Color3.fromRGB(55, 58, 64), -- Default button color
-            ButtonHover = Color3.fromRGB(75, 78, 84), -- Button color on hover
-            TabActive = Color3.fromRGB(88, 101, 242), -- Active tab color
-            TabInactive = Color3.fromRGB(55, 58, 64), -- Inactive tab color
-            CloseButton = Color3.fromRGB(237, 66, 69), -- Close button color
-            LockedButton = Color3.fromRGB(100, 100, 100) -- Locked button color
+            Background = Color3.fromRGB(28, 29, 32),
+            Header = Color3.fromRGB(35, 37, 40),
+            PrimaryText = Color3.fromRGB(255, 255, 255),
+            Button = Color3.fromRGB(55, 58, 64),
+            ButtonHover = Color3.fromRGB(75, 78, 84),
+            TabActive = Color3.fromRGB(88, 101, 242),
+            TabInactive = Color3.fromRGB(55, 58, 64),
+            CloseButton = Color3.fromRGB(237, 66, 69),
+            LockedButton = Color3.fromRGB(100, 100, 100)
         },
         Light = {
-            Background = Color3.fromRGB(240, 240, 240), -- Main window background
-            Header = Color3.fromRGB(200, 200, 200), -- Header background
-            PrimaryText = Color3.fromRGB(0, 0, 0), -- Main text color
-            SecondaryText = Color3.fromRGB(100, 100, 100), -- Secondary text color
-            Button = Color3.fromRGB(180, 180, 180), -- Default button color
-            ButtonHover = Color3.fromRGB(160, 160, 160), -- Button color on hover
-            TabActive = Color3.fromRGB(88, 101, 242), -- Active tab color
-            TabInactive = Color3.fromRGB(180, 180, 180), -- Inactive tab color
-            CloseButton = Color3.fromRGB(237, 66, 69), -- Close button color
-            LockedButton = Color3.fromRGB(150, 150, 150) -- Locked button color
+            Background = Color3.fromRGB(240, 240, 240),
+            Header = Color3.fromRGB(200, 200, 200),
+            PrimaryText = Color3.fromRGB(0, 0, 0),
+            Button = Color3.fromRGB(180, 180, 180),
+            ButtonHover = Color3.fromRGB(160, 160, 160),
+            TabActive = Color3.fromRGB(88, 101, 242),
+            TabInactive = Color3.fromRGB(180, 180, 180),
+            CloseButton = Color3.fromRGB(237, 66, 69),
+            LockedButton = Color3.fromRGB(150, 150, 150)
         }
+    },
+    Icons = {
+        Move = "rbxassetid://5122394512"
     }
 }
 
--- Internal state variables
-local mainFrameVisible = true -- Tracks window visibility
-local currentTab = nil -- Tracks the currently active tab
+-- Internal state
+local mainFrameVisible = true
+local currentTab = nil
 
--- Utility Function: Creates UI elements with specified properties
+-- Utility function to create UI elements
 local function createElement(className, properties)
-    local element = Instance.new(className) -- Create a new instance
-    for prop, value in pairs(properties) do -- Apply all properties
+    local element = Instance.new(className)
+    for prop, value in pairs(properties) do
         element[prop] = value
     end
     return element
 end
 
--- Function to Make a Frame Draggable
+-- Function to make a frame draggable
 local function makeDraggable(guiObject, dragHandle)
     local dragging = false
     local dragInput, dragStart, startPos
-
     local function update(input)
         local delta = input.Position - dragStart
-        guiObject.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + delta.X,
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y
-        )
+        guiObject.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-
     dragHandle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
@@ -97,13 +87,11 @@ local function makeDraggable(guiObject, dragHandle)
             end)
         end
     end)
-
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             update(input)
         end
     end)
-
     dragHandle.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
@@ -111,7 +99,7 @@ local function makeDraggable(guiObject, dragHandle)
     end)
 end
 
--- Function to Make a Frame Resizable
+-- Function to make a frame resizable
 local function makeResizable(guiObject, minSize, maxSize)
     local resizeButton = createElement("TextButton", {
         Name = "ResizeButton",
@@ -119,7 +107,7 @@ local function makeResizable(guiObject, minSize, maxSize)
         Size = UDim2.new(0, 15, 0, 15),
         Position = UDim2.new(1, -15, 1, -15),
         AnchorPoint = Vector2.new(1, 1),
-        BackgroundColor3 = Color3.fromRGB(120, 120, 120),
+        BackgroundColor3 = Color3.fromRGB(100, 100, 100),
         Text = "",
         AutoButtonColor = false
     })
@@ -127,7 +115,6 @@ local function makeResizable(guiObject, minSize, maxSize)
 
     local resizing = false
     local resizeStart, startSize
-
     resizeButton.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             resizing = true
@@ -135,7 +122,6 @@ local function makeResizable(guiObject, minSize, maxSize)
             startSize = guiObject.Size
         end
     end)
-
     UserInputService.InputChanged:Connect(function(input)
         if resizing then
             local delta = input.Position - resizeStart
@@ -144,7 +130,6 @@ local function makeResizable(guiObject, minSize, maxSize)
             guiObject.Size = UDim2.new(0, newWidth, 0, newHeight)
         end
     end)
-
     resizeButton.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             resizing = false
@@ -152,7 +137,7 @@ local function makeResizable(guiObject, minSize, maxSize)
     end)
 end
 
--- Stell:Window Method
+-- Stell:Window method
 function Stell:Window(info)
     info = info or {}
     local config = {
@@ -167,12 +152,13 @@ function Stell:Window(info)
         MinSize = info.MinSize or Stell.DefaultConfig.MinSize,
         MaxSize = info.MaxSize or Stell.DefaultConfig.MaxSize,
         ToggleKey = Stell.DefaultConfig.ToggleKey,
-        Colors = Stell.DefaultConfig.Colors[info.Theme or "Dark"] or Stell.DefaultConfig.Colors.Dark
+        Colors = Stell.DefaultConfig.Colors[info.Theme or "Dark"] or Stell.DefaultConfig.Colors.Dark,
+        Icons = Stell.DefaultConfig.Icons
     }
 
     local gui = {}
 
-    -- Create ScreenGui
+    -- Create main GUI
     gui.ScreenGui = createElement("ScreenGui", {
         Name = "StellGui",
         Parent = playerGui,
@@ -181,7 +167,6 @@ function Stell:Window(info)
         IgnoreGuiInset = true
     })
 
-    -- Create MainFrame
     gui.MainFrame = createElement("Frame", {
         Name = "MainFrame",
         Parent = gui.ScreenGui,
@@ -194,7 +179,7 @@ function Stell:Window(info)
     })
     createElement("UICorner", {CornerRadius = UDim.new(0, 8), Parent = gui.MainFrame})
 
-    -- Create Header
+    -- Header
     gui.Header = createElement("Frame", {
         Name = "Header",
         Parent = gui.MainFrame,
@@ -204,7 +189,6 @@ function Stell:Window(info)
     })
     createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = gui.Header})
 
-    -- Create Title
     gui.Title = createElement("TextLabel", {
         Name = "Title",
         Parent = gui.Header,
@@ -226,7 +210,7 @@ function Stell:Window(info)
             Position = UDim2.new(0, config.Logo ~= "" and 50 or 15, 0.5, 0),
             BackgroundTransparency = 1,
             Text = config.Subtitle,
-            TextColor3 = config.Colors.SecondaryText,
+            TextColor3 = config.Colors.PrimaryText,
             Font = Enum.Font.Gotham,
             TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left
@@ -259,7 +243,7 @@ function Stell:Window(info)
     })
     createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = gui.CloseButton})
 
-    -- Create Body
+    -- Body
     gui.Body = createElement("Frame", {
         Name = "Body",
         Parent = gui.MainFrame,
@@ -268,11 +252,10 @@ function Stell:Window(info)
         BackgroundTransparency = 1
     })
 
-    -- Create TabsContainer
     gui.TabsContainer = createElement("Frame", {
         Name = "TabsContainer",
         Parent = gui.Body,
-        Size = UDim2.new(0, 70, 1, 0),
+        Size = UDim2.new(0, 60, 1, 0),
         BackgroundColor3 = config.Colors.Header,
         BorderSizePixel = 0
     })
@@ -281,16 +264,16 @@ function Stell:Window(info)
         FillDirection = Enum.FillDirection.Vertical,
         HorizontalAlignment = Enum.HorizontalAlignment.Center,
         SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 5)
+        Padding = UDim.new(0, 10)
     })
-    createElement("UIPadding", {Parent = gui.TabsContainer, PaddingTop = UDim.new(0, 5)})
+    createElement("UIPadding", {Parent = gui.TabsContainer, PaddingTop = UDim.new(0, 10)})
 
-    -- Create ContentFrame
+    -- Content Frame
     gui.ContentFrame = createElement("Frame", {
         Name = "Content",
         Parent = gui.Body,
-        Size = UDim2.new(1, -70, 1, 0),
-        Position = UDim2.new(0, 70, 0, 0),
+        Size = UDim2.new(1, -60, 1, 0),
+        Position = UDim2.new(0, 60, 0, 0),
         BackgroundTransparency = 1
     })
     createElement("UIPadding", {
@@ -302,17 +285,14 @@ function Stell:Window(info)
 
     -- Draggable functionality
     if UserInputService.TouchEnabled then
-        gui.MoveButton = createElement("TextButton", {
+        gui.MoveButton = createElement("ImageButton", {
             Name = "MoveButton",
             Parent = gui.Header,
             Size = UDim2.new(0, 25, 0, 25),
             Position = UDim2.new(1, -50, 0.5, 0),
             AnchorPoint = Vector2.new(1, 0.5),
             BackgroundColor3 = config.Colors.Button,
-            Text = "☰", -- Simple move indicator
-            TextColor3 = config.Colors.PrimaryText,
-            Font = Enum.Font.Gotham,
-            TextSize = 14
+            Image = config.Icons.Move
         })
         createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = gui.MoveButton})
         makeDraggable(gui.MainFrame, gui.MoveButton)
@@ -330,14 +310,15 @@ function Stell:Window(info)
     function gui:Tab(info)
         info = info or {}
         local tabConfig = {
-            Name = info.Name or "Tab", -- Tab name displayed as text
-            KeySystem = info.KeySystem or false, -- Enable key system
-            Key = info.Key or "Hi123" -- Default key
+            Name = info.Name or "Tab",
+            Icon = info.Icon or "",
+            KeySystem = info.KeySystem or false,
+            Key = info.Key or "Hi123"
         }
 
+        -- Key System
         local keyValid = not tabConfig.KeySystem
         local keyPrompt, submitButton
-
         if tabConfig.KeySystem then
             keyPrompt = createElement("TextBox", {
                 Name = "KeyPrompt",
@@ -384,16 +365,12 @@ function Stell:Window(info)
         end
 
         local tab = {}
-        tab.Button = createElement("TextButton", {
+        tab.Button = createElement("ImageButton", {
             Name = tabConfig.Name .. "Button",
             Parent = gui.TabsContainer,
-            Size = UDim2.new(0, 60, 0, 35),
+            Size = UDim2.new(0, 40, 0, 40),
             BackgroundColor3 = config.Colors.TabInactive,
-            Text = tabConfig.Name,
-            TextColor3 = config.Colors.PrimaryText,
-            Font = Enum.Font.Gotham,
-            TextSize = 14,
-            TextWrapped = true,
+            Image = tabConfig.Icon,
             LayoutOrder = #gui.Tabs + 1
         })
         createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = tab.Button})
@@ -407,15 +384,16 @@ function Stell:Window(info)
             BorderSizePixel = 0,
             CanvasSize = UDim2.new(0, 0, 0, 0),
             ScrollBarImageColor3 = config.Colors.ButtonHover,
-            ScrollBarThickness = 6
+            ScrollBarThickness = 5
         })
         createElement("UIGridLayout", {
             Parent = tab.Content,
-            CellPadding = UDim2.new(0, 10, 0, 10),
-            CellSize = UDim2.new(0, 120, 0, 40),
+            CellPadding = UDim2.new(0, 8, 0, 8),
+            CellSize = UDim2.new(0, 100, 0, 35),
             SortOrder = Enum.SortOrder.LayoutOrder
         })
 
+        -- Tab switching
         tab.Button.MouseButton1Click:Connect(function()
             if tabConfig.KeySystem and not keyValid then
                 keyPrompt.Visible = true
@@ -431,6 +409,7 @@ function Stell:Window(info)
             currentTab = tabConfig.Name
         end)
 
+        -- Button creation method
         function tab:Button(info)
             info = info or {}
             local buttonConfig = {
@@ -444,7 +423,7 @@ function Stell:Window(info)
             local buttonFrame = createElement("Frame", {
                 Name = buttonConfig.Name .. "_Frame",
                 Parent = tab.Content,
-                Size = UDim2.new(0, 120, 0, buttonConfig.Desc ~= "" and 60 or 40),
+                Size = UDim2.new(0, 100, 0, buttonConfig.Desc ~= "" and 50 or 35),
                 BackgroundTransparency = 1,
                 Visible = buttonConfig.Visible
             })
@@ -452,7 +431,7 @@ function Stell:Window(info)
             local button = createElement("TextButton", {
                 Name = buttonConfig.Name,
                 Parent = buttonFrame,
-                Size = UDim2.new(1, 0, buttonConfig.Desc ~= "" and 0.6 or 1, 0),
+                Size = UDim2.new(1, 0, buttonConfig.Desc ~= "" and 0.7 or 1, 0),
                 BackgroundColor3 = buttonConfig.Locked and config.Colors.LockedButton or config.Colors.Button,
                 Text = buttonConfig.Name,
                 TextColor3 = config.Colors.PrimaryText,
@@ -466,13 +445,13 @@ function Stell:Window(info)
                 local descLabel = createElement("TextLabel", {
                     Name = buttonConfig.Name .. "_Desc",
                     Parent = buttonFrame,
-                    Size = UDim2.new(1, 0, 0.4, 0),
-                    Position = UDim2.new(0, 0, 0.6, 0),
+                    Size = UDim2.new(1, 0, 0.3, 0),
+                    Position = UDim2.new(0, 0, 0.7, 0),
                     BackgroundTransparency = 1,
                     Text = buttonConfig.Desc,
-                    TextColor3 = config.Colors.SecondaryText,
+                    TextColor3 = config.Colors.PrimaryText,
                     Font = Enum.Font.Gotham,
-                    TextSize = 12,
+                    TextSize = 10,
                     TextWrapped = true,
                     TextXAlignment = Enum.TextXAlignment.Center
                 })
@@ -497,11 +476,13 @@ function Stell:Window(info)
         return tab
     end
 
+    -- Toggle Window
     function gui:Toggle(state)
         mainFrameVisible = state
         gui.MainFrame.Visible = state
     end
 
+    -- Close Button Functionality
     gui.CloseButton.MouseButton1Click:Connect(function()
         gui:Toggle(false)
     end)
@@ -512,6 +493,7 @@ function Stell:Window(info)
         TweenService:Create(gui.CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = config.Colors.Button}):Play()
     end)
 
+    -- Toggle Key Binding
     UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
         if gameProcessedEvent then return end
         if input.KeyCode == config.ToggleKey then
@@ -519,11 +501,13 @@ function Stell:Window(info)
         end
     end)
 
+    -- Set initial visibility
     gui:Toggle(config.DefaultOpened)
 
     return gui
 end
 
+-- Initialize Stell UI with an empty window
 function Stell:Init(customConfig)
     local config = customConfig or {}
     local gui = self:Window({
@@ -539,9 +523,8 @@ function Stell:Init(customConfig)
         MaxSize = config.MaxSize or Stell.DefaultConfig.MaxSize
     })
 
-    print("Stell UI Library v1.3 initialized at " .. os.date("%H:%M, %d/%m/%Y"))
+    print("Stell UI Library v1.1 initialized.")
     return gui
 end
 
--- MUDANÇA CRÍTICA: Atribui a biblioteca a uma variável global para ser acessada pelo executor.
-_G.Stell = Stell
+return Stell
