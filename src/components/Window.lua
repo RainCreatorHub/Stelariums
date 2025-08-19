@@ -1,6 +1,6 @@
 -- Stell UI Library | Created by Grok
--- Version: 1.0
--- Description: A modular UI library for creating customizable windows and tabs in Roblox, without animation features.
+-- Version: 1.1
+-- Description: A modular UI library for creating customizable windows, tabs, and buttons in Roblox, without animation features.
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -34,7 +34,8 @@ Stell.DefaultConfig = {
             ButtonHover = Color3.fromRGB(75, 78, 84),
             TabActive = Color3.fromRGB(88, 101, 242),
             TabInactive = Color3.fromRGB(55, 58, 64),
-            CloseButton = Color3.fromRGB(237, 66, 69)
+            CloseButton = Color3.fromRGB(237, 66, 69),
+            LockedButton = Color3.fromRGB(100, 100, 100)
         },
         Light = {
             Background = Color3.fromRGB(240, 240, 240),
@@ -44,7 +45,8 @@ Stell.DefaultConfig = {
             ButtonHover = Color3.fromRGB(160, 160, 160),
             TabActive = Color3.fromRGB(88, 101, 242),
             TabInactive = Color3.fromRGB(180, 180, 180),
-            CloseButton = Color3.fromRGB(237, 66, 69)
+            CloseButton = Color3.fromRGB(237, 66, 69),
+            LockedButton = Color3.fromRGB(150, 150, 150)
         }
     },
     Icons = {
@@ -231,7 +233,7 @@ function Stell:Window(info)
         Name = "CloseButton",
         Parent = gui.Header,
         Size = UDim2.new(0, 25, 0, 25),
-        Position = UDim2.new(1, - ederim, 0.5, 0),
+        Position = UDim2.new(1, -15, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundColor3 = config.Colors.Button,
         Text = "X",
@@ -316,8 +318,9 @@ function Stell:Window(info)
 
         -- Key System
         local keyValid = not tabConfig.KeySystem
+        local keyPrompt, submitButton
         if tabConfig.KeySystem then
-            local keyPrompt = createElement("TextBox", {
+            keyPrompt = createElement("TextBox", {
                 Name = "KeyPrompt",
                 Parent = gui.ContentFrame,
                 Size = UDim2.new(1, -20, 0, 30),
@@ -331,7 +334,7 @@ function Stell:Window(info)
             })
             createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = keyPrompt})
 
-            local submitButton = createElement("TextButton", {
+            submitButton = createElement("TextButton", {
                 Name = "SubmitKey",
                 Parent = gui.ContentFrame,
                 Size = UDim2.new(0, 100, 0, 30),
@@ -406,28 +409,66 @@ function Stell:Window(info)
             currentTab = tabConfig.Name
         end)
 
-        -- Add button creation method
-        function tab:AddButton(name, callback)
-            local button = createElement("TextButton", {
-                Name = name,
+        -- Button creation method
+        function tab:Button(info)
+            info = info or {}
+            local buttonConfig = {
+                Name = info.Name or "Button",
+                Desc = info.Desc or "",
+                Locked = info.Locked or false,
+                Visible = info.Visible ~= nil and info.Visible or true,
+                Callback = info.Callback or function() print("Button clicked!") end
+            }
+
+            local buttonFrame = createElement("Frame", {
+                Name = buttonConfig.Name .. "_Frame",
                 Parent = tab.Content,
-                BackgroundColor3 = config.Colors.Button,
-                Text = name,
+                Size = UDim2.new(0, 100, 0, buttonConfig.Desc ~= "" and 50 or 35),
+                BackgroundTransparency = 1,
+                Visible = buttonConfig.Visible
+            })
+
+            local button = createElement("TextButton", {
+                Name = buttonConfig.Name,
+                Parent = buttonFrame,
+                Size = UDim2.new(1, 0, buttonConfig.Desc ~= "" and 0.7 or 1, 0),
+                BackgroundColor3 = buttonConfig.Locked and config.Colors.LockedButton or config.Colors.Button,
+                Text = buttonConfig.Name,
                 TextColor3 = config.Colors.PrimaryText,
                 Font = Enum.Font.Gotham,
                 TextSize = 14,
-                AutoButtonColor = false
+                AutoButtonColor = not buttonConfig.Locked
             })
             createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = button})
-            button.MouseButton1Click:Connect(function()
-                if callback then callback() end
-            end)
-            button.MouseEnter:Connect(function()
-                TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = config.Colors.ButtonHover}):Play()
-            end)
-            button.MouseLeave:Connect(function()
-                TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = config.Colors.Button}):Play()
-            end)
+
+            if buttonConfig.Desc ~= "" then
+                local descLabel = createElement("TextLabel", {
+                    Name = buttonConfig.Name .. "_Desc",
+                    Parent = buttonFrame,
+                    Size = UDim2.new(1, 0, 0.3, 0),
+                    Position = UDim2.new(0, 0, 0.7, 0),
+                    BackgroundTransparency = 1,
+                    Text = buttonConfig.Desc,
+                    TextColor3 = config.Colors.PrimaryText,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 10,
+                    TextWrapped = true,
+                    TextXAlignment = Enum.TextXAlignment.Center
+                })
+            end
+
+            if not buttonConfig.Locked then
+                button.MouseButton1Click:Connect(function()
+                    buttonConfig.Callback()
+                end)
+                button.MouseEnter:Connect(function()
+                    TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = config.Colors.ButtonHover}):Play()
+                end)
+                button.MouseLeave:Connect(function()
+                    TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = config.Colors.Button}):Play()
+                end)
+            end
+
             return button
         end
 
@@ -482,7 +523,7 @@ function Stell:Init(customConfig)
         MaxSize = config.MaxSize or Stell.DefaultConfig.MaxSize
     })
 
-    print("Stell UI Library v1.0 initialized.")
+    print("Stell UI Library v1.1 initialized.")
     return gui
 end
 
