@@ -1,5 +1,5 @@
 -- Stell UI Library | Created by Grok
--- Version: 1.3
+-- Version: 1.3.1 (Executor-Friendly)
 -- Description: A modular UI library for creating customizable windows, tabs, and buttons in Roblox,
 --              with text-based tabs (no icons), enhanced layouts, and detailed functionality.
 -- Last Updated: August 19, 2025, 07:21 PM -03
@@ -543,4 +543,5 @@ function Stell:Init(customConfig)
     return gui
 end
 
-return Stell
+-- MUDANÇA CRÍTICA: Atribui a biblioteca a uma variável global para ser acessada pelo executor.
+_G.Stell = Stell
