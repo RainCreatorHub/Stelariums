@@ -1,11 +1,11 @@
 -- Stell UI Library | Created by Grok
--- Version: 1.2
+-- Version: 1.3
 -- Description: A modular UI library for creating customizable windows, tabs, and buttons in Roblox,
---              designed without animation features and with text-based tabs (no icons).
--- Last Updated: August 19, 2025, 06:45 PM -03
+--              with text-based tabs (no icons), enhanced layouts, and detailed functionality.
+-- Last Updated: August 19, 2025, 07:21 PM -03
 
 local Players = game:GetService("Players") -- Service to access player data
-local TweenService = game:GetService("TweenService") -- Service for smooth color transitions (used for hover effects)
+local TweenService = game:GetService("TweenService") -- Service for smooth color transitions
 local UserInputService = game:GetService("UserInputService") -- Service to handle user input
 
 -- Get the local player and their PlayerGui for UI rendering
@@ -18,24 +18,25 @@ local Stell = {}
 -- Default Configuration Table
 -- This table contains all default settings for windows, tabs, and buttons
 Stell.DefaultConfig = {
-    WindowTitle = "Stell Window", -- Default title for the window
+    WindowTitle = "Stell Interface", -- Default window title
     WindowSubtitle = "", -- Default subtitle (empty by default)
     Theme = "Dark", -- Default theme ("Dark" or "Light")
-    Logo = "", -- Default logo image (empty by default, can be an rbxassetid)
-    Resizable = true, -- Whether the window can be resized
-    Transparency = false, -- Whether the window has transparency
-    DefaultOpened = true, -- Whether the window is visible by default
-    DefaultSize = {500, 350}, -- Default width and height (in pixels)
-    MinSize = {300, 200}, -- Minimum allowable size (width, height)
-    MaxSize = {800, 600}, -- Maximum allowable size (width, height)
-    ToggleKey = Enum.KeyCode.F, -- Key to toggle the window visibility
+    Logo = "", -- Default logo image (rbxassetid, empty by default)
+    Resizable = true, -- Enable window resizing
+    Transparency = false, -- Enable window transparency
+    DefaultOpened = true, -- Window visible by default
+    DefaultSize = {550, 400}, -- Default width and height (in pixels)
+    MinSize = {350, 250}, -- Minimum allowable size
+    MaxSize = {900, 700}, -- Maximum allowable size
+    ToggleKey = Enum.KeyCode.F, -- Key to toggle window visibility
 
     -- Color schemes for different themes
     Colors = {
         Dark = {
             Background = Color3.fromRGB(28, 29, 32), -- Main window background
             Header = Color3.fromRGB(35, 37, 40), -- Header background
-            PrimaryText = Color3.fromRGB(255, 255, 255), -- Text color
+            PrimaryText = Color3.fromRGB(255, 255, 255), -- Main text color
+            SecondaryText = Color3.fromRGB(200, 200, 200), -- Secondary text color (e.g., descriptions)
             Button = Color3.fromRGB(55, 58, 64), -- Default button color
             ButtonHover = Color3.fromRGB(75, 78, 84), -- Button color on hover
             TabActive = Color3.fromRGB(88, 101, 242), -- Active tab color
@@ -46,7 +47,8 @@ Stell.DefaultConfig = {
         Light = {
             Background = Color3.fromRGB(240, 240, 240), -- Main window background
             Header = Color3.fromRGB(200, 200, 200), -- Header background
-            PrimaryText = Color3.fromRGB(0, 0, 0), -- Text color
+            PrimaryText = Color3.fromRGB(0, 0, 0), -- Main text color
+            SecondaryText = Color3.fromRGB(100, 100, 100), -- Secondary text color
             Button = Color3.fromRGB(180, 180, 180), -- Default button color
             ButtonHover = Color3.fromRGB(160, 160, 160), -- Button color on hover
             TabActive = Color3.fromRGB(88, 101, 242), -- Active tab color
@@ -54,34 +56,32 @@ Stell.DefaultConfig = {
             CloseButton = Color3.fromRGB(237, 66, 69), -- Close button color
             LockedButton = Color3.fromRGB(150, 150, 150) -- Locked button color
         }
-    },
-    Icons = {} -- Removed icon support for tabs, kept empty
+    }
 }
 
 -- Internal state variables
-local mainFrameVisible = true -- Tracks the visibility state of the main window
+local mainFrameVisible = true -- Tracks window visibility
 local currentTab = nil -- Tracks the currently active tab
 
 -- Utility Function: Creates UI elements with specified properties
 local function createElement(className, properties)
-    local element = Instance.new(className) -- Creates a new instance of the specified class
-    for prop, value in pairs(properties) do -- Applies all properties to the element
+    local element = Instance.new(className) -- Create a new instance
+    for prop, value in pairs(properties) do -- Apply all properties
         element[prop] = value
     end
     return element
 end
 
 -- Function to Make a Frame Draggable
--- Allows the user to drag the window by holding and moving the mouse or touch input
 local function makeDraggable(guiObject, dragHandle)
-    local dragging = false -- Flag to track if dragging is active
-    local dragInput, dragStart, startPos -- Variables to store drag state
+    local dragging = false
+    local dragInput, dragStart, startPos
 
     local function update(input)
-        local delta = input.Position - dragStart -- Calculate the movement delta
+        local delta = input.Position - dragStart
         guiObject.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + delta.X, -- Update X position
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y -- Update Y position
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
         )
     end
 
@@ -112,22 +112,21 @@ local function makeDraggable(guiObject, dragHandle)
 end
 
 -- Function to Make a Frame Resizable
--- Adds a resize handle to the bottom-right corner of the window
 local function makeResizable(guiObject, minSize, maxSize)
     local resizeButton = createElement("TextButton", {
-        Name = "ResizeButton", -- Name of the resize handle
-        Parent = guiObject, -- Parent is the main frame
-        Size = UDim2.new(0, 15, 0, 15), -- Small square for resizing
-        Position = UDim2.new(1, -15, 1, -15), -- Positioned at bottom-right
-        AnchorPoint = Vector2.new(1, 1), -- Anchored to the bottom-right corner
-        BackgroundColor3 = Color3.fromRGB(100, 100, 100), -- Gray color for visibility
-        Text = "", -- No text, just a handle
-        AutoButtonColor = false -- Prevents default button color changes
+        Name = "ResizeButton",
+        Parent = guiObject,
+        Size = UDim2.new(0, 15, 0, 15),
+        Position = UDim2.new(1, -15, 1, -15),
+        AnchorPoint = Vector2.new(1, 1),
+        BackgroundColor3 = Color3.fromRGB(120, 120, 120),
+        Text = "",
+        AutoButtonColor = false
     })
-    createElement("UICorner", {CornerRadius = UDim.new(0, 4), Parent = resizeButton}) -- Rounded corners
+    createElement("UICorner", {CornerRadius = UDim.new(0, 4), Parent = resizeButton})
 
-    local resizing = false -- Flag to track if resizing is active
-    local resizeStart, startSize -- Variables to store resize state
+    local resizing = false
+    local resizeStart, startSize
 
     resizeButton.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -139,10 +138,10 @@ local function makeResizable(guiObject, minSize, maxSize)
 
     UserInputService.InputChanged:Connect(function(input)
         if resizing then
-            local delta = input.Position - resizeStart -- Calculate the resize delta
-            local newWidth = math.clamp(startSize.X.Offset + delta.X, minSize[1], maxSize[1]) -- Clamp width
-            local newHeight = math.clamp(startSize.Y.Offset + delta.Y, minSize[2], maxSize[2]) -- Clamp height
-            guiObject.Size = UDim2.new(0, newWidth, 0, newHeight) -- Apply new size
+            local delta = input.Position - resizeStart
+            local newWidth = math.clamp(startSize.X.Offset + delta.X, minSize[1], maxSize[1])
+            local newHeight = math.clamp(startSize.Y.Offset + delta.Y, minSize[2], maxSize[2])
+            guiObject.Size = UDim2.new(0, newWidth, 0, newHeight)
         end
     end)
 
@@ -154,344 +153,334 @@ local function makeResizable(guiObject, minSize, maxSize)
 end
 
 -- Stell:Window Method
--- Creates a new window with customizable properties
 function Stell:Window(info)
-    info = info or {} -- Use empty table if no info is provided
+    info = info or {}
     local config = {
-        Title = info.Title or Stell.DefaultConfig.WindowTitle, -- Window title
-        Subtitle = info.Subtitle or Stell.DefaultConfig.WindowSubtitle, -- Window subtitle
-        Theme = info.Theme or Stell.DefaultConfig.Theme, -- Selected theme
-        Logo = info.Logo or Stell.DefaultConfig.Logo, -- Logo image (if any)
-        Resizable = info.Resizable ~= nil and info.Resizable or Stell.DefaultConfig.Resizable, -- Resizability
-        Transparency = info.Transparency or Stell.DefaultConfig.Transparency, -- Transparency setting
-        DefaultOpened = info.DefaultOpened ~= nil and info.DefaultOpened or Stell.DefaultConfig.DefaultOpened, -- Initial visibility
-        DefaultSize = info.DefaultSize or Stell.DefaultConfig.DefaultSize, -- Initial size
-        MinSize = info.MinSize or Stell.DefaultConfig.MinSize, -- Minimum size constraints
-        MaxSize = info.MaxSize or Stell.DefaultConfig.MaxSize, -- Maximum size constraints
-        ToggleKey = Stell.DefaultConfig.ToggleKey, -- Key to toggle visibility
-        Colors = Stell.DefaultConfig.Colors[info.Theme or "Dark"] or Stell.DefaultConfig.Colors.Dark, -- Theme colors
-        Icons = Stell.DefaultConfig.Icons -- Empty icons table (no icons used)
+        Title = info.Title or Stell.DefaultConfig.WindowTitle,
+        Subtitle = info.Subtitle or Stell.DefaultConfig.WindowSubtitle,
+        Theme = info.Theme or Stell.DefaultConfig.Theme,
+        Logo = info.Logo or Stell.DefaultConfig.Logo,
+        Resizable = info.Resizable ~= nil and info.Resizable or Stell.DefaultConfig.Resizable,
+        Transparency = info.Transparency or Stell.DefaultConfig.Transparency,
+        DefaultOpened = info.DefaultOpened ~= nil and info.DefaultOpened or Stell.DefaultConfig.DefaultOpened,
+        DefaultSize = info.DefaultSize or Stell.DefaultConfig.DefaultSize,
+        MinSize = info.MinSize or Stell.DefaultConfig.MinSize,
+        MaxSize = info.MaxSize or Stell.DefaultConfig.MaxSize,
+        ToggleKey = Stell.DefaultConfig.ToggleKey,
+        Colors = Stell.DefaultConfig.Colors[info.Theme or "Dark"] or Stell.DefaultConfig.Colors.Dark
     }
 
-    local gui = {} -- Table to hold all GUI elements
+    local gui = {}
 
-    -- Create the ScreenGui to hold the window
+    -- Create ScreenGui
     gui.ScreenGui = createElement("ScreenGui", {
-        Name = "StellGui", -- Unique name for the GUI
-        Parent = playerGui, -- Parent to the player's GUI
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling, -- Allows layering with other GUIs
-        ResetOnSpawn = false, -- Persists across respawns
-        IgnoreGuiInset = true -- Ignores safe area insets
+        Name = "StellGui",
+        Parent = playerGui,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        ResetOnSpawn = false,
+        IgnoreGuiInset = true
     })
 
-    -- Create the main window frame
+    -- Create MainFrame
     gui.MainFrame = createElement("Frame", {
-        Name = "MainFrame", -- Name of the main frame
-        Parent = gui.ScreenGui, -- Parent is the ScreenGui
-        Size = UDim2.new(0, config.DefaultSize[1], 0, config.DefaultSize[2]), -- Initial size
-        Position = UDim2.new(0.5, 0, 0.5, 0), -- Centered on screen
-        BackgroundColor3 = config.Colors.Background, -- Background color from theme
-        BorderSizePixel = 0, -- No border for a clean look
-        AnchorPoint = Vector2.new(0.5, 0.5), -- Anchored at center for resizing
-        BackgroundTransparency = config.Transparency and 0.3 or 0 -- Apply transparency if enabled
+        Name = "MainFrame",
+        Parent = gui.ScreenGui,
+        Size = UDim2.new(0, config.DefaultSize[1], 0, config.DefaultSize[2]),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        BackgroundColor3 = config.Colors.Background,
+        BorderSizePixel = 0,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = config.Transparency and 0.3 or 0
     })
-    createElement("UICorner", {CornerRadius = UDim.new(0, 8), Parent = gui.MainFrame}) -- Rounded corners
+    createElement("UICorner", {CornerRadius = UDim.new(0, 8), Parent = gui.MainFrame})
 
-    -- Create the header frame
+    -- Create Header
     gui.Header = createElement("Frame", {
-        Name = "Header", -- Name of the header
-        Parent = gui.MainFrame, -- Parent is the main frame
-        Size = UDim2.new(1, 0, 0, config.Subtitle ~= "" and 60 or 40), -- Height adjusts with subtitle
-        BackgroundColor3 = config.Colors.Header, -- Header color from theme
-        BorderSizePixel = 0 -- No border
+        Name = "Header",
+        Parent = gui.MainFrame,
+        Size = UDim2.new(1, 0, 0, config.Subtitle ~= "" and 60 or 40),
+        BackgroundColor3 = config.Colors.Header,
+        BorderSizePixel = 0
     })
-    createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = gui.Header}) -- Rounded corners
+    createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = gui.Header})
 
-    -- Create the title label
+    -- Create Title
     gui.Title = createElement("TextLabel", {
-        Name = "Title", -- Name of the title label
-        Parent = gui.Header, -- Parent is the header
-        Size = UDim2.new(1, -50, config.Subtitle ~= "" and 0.5 or 1, 0), -- Adjusts with subtitle
-        Position = UDim2.new(0, config.Logo ~= "" and 50 or 15, 0, 0), -- Offset for logo if present
-        BackgroundTransparency = 1, -- Transparent background
-        Text = config.Title, -- Display the title
-        TextColor3 = config.Colors.PrimaryText, -- Text color from theme
-        Font = Enum.Font.GothamBold, -- Bold Gotham font
-        TextSize = 18, -- Font size
-        TextXAlignment = Enum.TextXAlignment.Left -- Left-aligned text
+        Name = "Title",
+        Parent = gui.Header,
+        Size = UDim2.new(1, -50, config.Subtitle ~= "" and 0.5 or 1, 0),
+        Position = UDim2.new(0, config.Logo ~= "" and 50 or 15, 0, 0),
+        BackgroundTransparency = 1,
+        Text = config.Title,
+        TextColor3 = config.Colors.PrimaryText,
+        Font = Enum.Font.GothamBold,
+        TextSize = 18,
+        TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- Create the subtitle label if provided
     if config.Subtitle ~= "" then
         gui.Subtitle = createElement("TextLabel", {
-            Name = "Subtitle", -- Name of the subtitle label
-            Parent = gui.Header, -- Parent is the header
-            Size = UDim2.new(1, -50, 0.5, 0), -- Half the header height
-            Position = UDim2.new(0, config.Logo ~= "" and 50 or 15, 0.5, 0), -- Below title
-            BackgroundTransparency = 1, -- Transparent background
-            Text = config.Subtitle, -- Display the subtitle
-            TextColor3 = config.Colors.PrimaryText, -- Text color from theme
-            Font = Enum.Font.Gotham, -- Regular Gotham font
-            TextSize = 14, -- Smaller font size
-            TextXAlignment = Enum.TextXAlignment.Left -- Left-aligned text
+            Name = "Subtitle",
+            Parent = gui.Header,
+            Size = UDim2.new(1, -50, 0.5, 0),
+            Position = UDim2.new(0, config.Logo ~= "" and 50 or 15, 0.5, 0),
+            BackgroundTransparency = 1,
+            Text = config.Subtitle,
+            TextColor3 = config.Colors.SecondaryText,
+            Font = Enum.Font.Gotham,
+            TextSize = 14,
+            TextXAlignment = Enum.TextXAlignment.Left
         })
     end
 
-    -- Create the logo image if provided
     if config.Logo ~= "" then
         gui.Logo = createElement("ImageLabel", {
-            Name = "Logo", -- Name of the logo
-            Parent = gui.Header, -- Parent is the header
-            Size = UDim2.new(0, 30, 0, 30), -- Fixed size for logo
-            Position = UDim2.new(0, 10, 0.5, 0), -- Centered vertically
-            AnchorPoint = Vector2.new(0, 0.5), -- Anchored at left center
-            BackgroundTransparency = 1, -- Transparent background
-            Image = config.Logo -- Logo image from config
+            Name = "Logo",
+            Parent = gui.Header,
+            Size = UDim2.new(0, 30, 0, 30),
+            Position = UDim2.new(0, 10, 0.5, 0),
+            AnchorPoint = Vector2.new(0, 0.5),
+            BackgroundTransparency = 1,
+            Image = config.Logo
         })
     end
 
-    -- Create the close button
     gui.CloseButton = createElement("TextButton", {
-        Name = "CloseButton", -- Name of the close button
-        Parent = gui.Header, -- Parent is the header
-        Size = UDim2.new(0, 25, 0, 25), -- Small square button
-        Position = UDim2.new(1, -15, 0.5, 0), -- Top-right corner
-        AnchorPoint = Vector2.new(1, 0.5), -- Anchored at right center
-        BackgroundColor3 = config.Colors.Button, -- Button color from theme
-        Text = "X", -- Close symbol
-        TextColor3 = config.Colors.PrimaryText, -- Text color
-        Font = Enum.Font.GothamBold, -- Bold Gotham font
-        TextSize = 14 -- Font size
+        Name = "CloseButton",
+        Parent = gui.Header,
+        Size = UDim2.new(0, 25, 0, 25),
+        Position = UDim2.new(1, -15, 0.5, 0),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundColor3 = config.Colors.Button,
+        Text = "X",
+        TextColor3 = config.Colors.PrimaryText,
+        Font = Enum.Font.GothamBold,
+        TextSize = 14
     })
-    createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = gui.CloseButton}) -- Rounded corners
+    createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = gui.CloseButton})
 
-    -- Create the body frame
+    -- Create Body
     gui.Body = createElement("Frame", {
-        Name = "Body", -- Name of the body
-        Parent = gui.MainFrame, -- Parent is the main frame
-        Size = UDim2.new(1, 0, 1, config.Subtitle ~= "" and -60 or -40), -- Adjusts with subtitle
-        Position = UDim2.new(0, 0, 0, config.Subtitle ~= "" and 60 or 40), -- Below header
-        BackgroundTransparency = 1 -- Transparent background
+        Name = "Body",
+        Parent = gui.MainFrame,
+        Size = UDim2.new(1, 0, 1, config.Subtitle ~= "" and -60 or -40),
+        Position = UDim2.new(0, 0, 0, config.Subtitle ~= "" and 60 or 40),
+        BackgroundTransparency = 1
     })
 
-    -- Create the tabs container
+    -- Create TabsContainer
     gui.TabsContainer = createElement("Frame", {
-        Name = "TabsContainer", -- Name of the tabs container
-        Parent = gui.Body, -- Parent is the body
-        Size = UDim2.new(0, 60, 1, 0), -- Fixed width for tabs
-        BackgroundColor3 = config.Colors.Header, -- Same color as header
-        BorderSizePixel = 0 -- No border
+        Name = "TabsContainer",
+        Parent = gui.Body,
+        Size = UDim2.new(0, 70, 1, 0),
+        BackgroundColor3 = config.Colors.Header,
+        BorderSizePixel = 0
     })
     createElement("UIListLayout", {
-        Parent = gui.TabsContainer, -- Parent is the tabs container
-        FillDirection = Enum.FillDirection.Vertical, -- Tabs stack vertically
-        HorizontalAlignment = Enum.HorizontalAlignment.Center, -- Centered horizontally
-        SortOrder = Enum.SortOrder.LayoutOrder, -- Order based on LayoutOrder
-        Padding = UDim.new(0, 10) -- Spacing between tabs
+        Parent = gui.TabsContainer,
+        FillDirection = Enum.FillDirection.Vertical,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 5)
     })
-    createElement("UIPadding", {Parent = gui.TabsContainer, PaddingTop = UDim.new(0, 10)}) -- Top padding
+    createElement("UIPadding", {Parent = gui.TabsContainer, PaddingTop = UDim.new(0, 5)})
 
-    -- Create the content frame for tab content
+    -- Create ContentFrame
     gui.ContentFrame = createElement("Frame", {
-        Name = "Content", -- Name of the content frame
-        Parent = gui.Body, -- Parent is the body
-        Size = UDim2.new(1, -60, 1, 0), -- Adjusts for tabs container width
-        Position = UDim2.new(0, 60, 0, 0), -- To the right of tabs
-        BackgroundTransparency = 1 -- Transparent background
+        Name = "Content",
+        Parent = gui.Body,
+        Size = UDim2.new(1, -70, 1, 0),
+        Position = UDim2.new(0, 70, 0, 0),
+        BackgroundTransparency = 1
     })
     createElement("UIPadding", {
-        Parent = gui.ContentFrame, -- Parent is the content frame
-        PaddingTop = UDim.new(0, 10), -- Top padding
-        PaddingLeft = UDim.new(0, 10), -- Left padding
-        PaddingRight = UDim.new(0, 10) -- Right padding
+        Parent = gui.ContentFrame,
+        PaddingTop = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 10),
+        PaddingRight = UDim.new(0, 10)
     })
 
     -- Draggable functionality
     if UserInputService.TouchEnabled then
-        gui.MoveButton = createElement("ImageButton", {
-            Name = "MoveButton", -- Name of the move button
-            Parent = gui.Header, -- Parent is the header
-            Size = UDim2.new(0, 25, 0, 25), -- Small square button
-            Position = UDim2.new(1, -50, 0.5, 0), -- Next to close button
-            AnchorPoint = Vector2.new(1, 0.5), -- Anchored at right center
-            BackgroundColor3 = config.Colors.Button, -- Button color
-            Image = "" -- No image (icons removed)
+        gui.MoveButton = createElement("TextButton", {
+            Name = "MoveButton",
+            Parent = gui.Header,
+            Size = UDim2.new(0, 25, 0, 25),
+            Position = UDim2.new(1, -50, 0.5, 0),
+            AnchorPoint = Vector2.new(1, 0.5),
+            BackgroundColor3 = config.Colors.Button,
+            Text = "☰", -- Simple move indicator
+            TextColor3 = config.Colors.PrimaryText,
+            Font = Enum.Font.Gotham,
+            TextSize = 14
         })
-        createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = gui.MoveButton}) -- Rounded corners
-        makeDraggable(gui.MainFrame, gui.MoveButton) -- Make draggable with move button
+        createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = gui.MoveButton})
+        makeDraggable(gui.MainFrame, gui.MoveButton)
     else
-        makeDraggable(gui.MainFrame, gui.Header) -- Make draggable with entire header
+        makeDraggable(gui.MainFrame, gui.Header)
     end
 
     -- Resizable functionality
     if config.Resizable then
-        makeResizable(gui.MainFrame, config.MinSize, config.MaxSize) -- Enable resizing
+        makeResizable(gui.MainFrame, config.MinSize, config.MaxSize)
     end
 
     -- Tab Management
-    gui.Tabs = {} -- Table to store all tabs
+    gui.Tabs = {}
     function gui:Tab(info)
-        info = info or {} -- Use empty table if no info provided
+        info = info or {}
         local tabConfig = {
-            Name = info.Name or "Tab", -- Tab name (displayed as text)
-            KeySystem = info.KeySystem or false, -- Whether a key is required
-            Key = info.Key or "Hi123" -- Default key if key system is enabled
+            Name = info.Name or "Tab", -- Tab name displayed as text
+            KeySystem = info.KeySystem or false, -- Enable key system
+            Key = info.Key or "Hi123" -- Default key
         }
 
-        -- Key System Implementation
-        local keyValid = not tabConfig.KeySystem -- Assume valid unless key system is active
-        local keyPrompt, submitButton -- Variables for key input UI
+        local keyValid = not tabConfig.KeySystem
+        local keyPrompt, submitButton
+
         if tabConfig.KeySystem then
             keyPrompt = createElement("TextBox", {
-                Name = "KeyPrompt", -- Name of the key input box
-                Parent = gui.ContentFrame, -- Parent is the content frame
-                Size = UDim2.new(1, -20, 0, 30), -- Width minus padding, fixed height
-                Position = UDim2.new(0, 10, 0, 10), -- Top-left position
-                BackgroundColor3 = config.Colors.Button, -- Button color
-                Text = "Enter Key", -- Placeholder text
-                TextColor3 = config.Colors.PrimaryText, -- Text color
-                Font = Enum.Font.Gotham, -- Gotham font
-                TextSize = 14, -- Font size
-                Visible = false -- Hidden by default
+                Name = "KeyPrompt",
+                Parent = gui.ContentFrame,
+                Size = UDim2.new(1, -20, 0, 30),
+                Position = UDim2.new(0, 10, 0, 10),
+                BackgroundColor3 = config.Colors.Button,
+                Text = "Enter Key",
+                TextColor3 = config.Colors.PrimaryText,
+                Font = Enum.Font.Gotham,
+                TextSize = 14,
+                Visible = false
             })
-            createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = keyPrompt}) -- Rounded corners
+            createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = keyPrompt})
 
             submitButton = createElement("TextButton", {
-                Name = "SubmitKey", -- Name of the submit button
-                Parent = gui.ContentFrame, -- Parent is the content frame
-                Size = UDim2.new(0, 100, 0, 30), -- Fixed size
-                Position = UDim2.new(0, 10, 0, 50), -- Below key prompt
-                BackgroundColor3 = config.Colors.Button, -- Button color
-                Text = "Submit", -- Button text
-                TextColor3 = config.Colors.PrimaryText, -- Text color
-                Font = Enum.Font.Gotham, -- Gotham font
-                TextSize = 14, -- Font size
-                Visible = false -- Hidden by default
+                Name = "SubmitKey",
+                Parent = gui.ContentFrame,
+                Size = UDim2.new(0, 100, 0, 30),
+                Position = UDim2.new(0, 10, 0, 50),
+                BackgroundColor3 = config.Colors.Button,
+                Text = "Submit",
+                TextColor3 = config.Colors.PrimaryText,
+                Font = Enum.Font.Gotham,
+                TextSize = 14,
+                Visible = false
             })
-            createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = submitButton}) -- Rounded corners
+            createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = submitButton})
 
-            -- Handle key submission
             submitButton.MouseButton1Click:Connect(function()
                 if keyPrompt.Text == tabConfig.Key then
-                    keyValid = true -- Validate key
-                    keyPrompt.Visible = false -- Hide prompt
-                    submitButton.Visible = false -- Hide submit button
+                    keyValid = true
+                    keyPrompt.Visible = false
+                    submitButton.Visible = false
                     for _, t in pairs(gui.Tabs) do
-                        t.Content.Visible = (t == gui.Tabs[tabConfig.Name]) and keyValid -- Show only valid tab
+                        t.Content.Visible = (t == gui.Tabs[tabConfig.Name]) and keyValid
                     end
                 else
-                    keyPrompt.Text = "Invalid Key" -- Feedback for wrong key
-                    wait(1) -- Wait 1 second
-                    keyPrompt.Text = "Enter Key" -- Reset prompt
+                    keyPrompt.Text = "Invalid Key"
+                    wait(1)
+                    keyPrompt.Text = "Enter Key"
                 end
             end)
         end
 
-        -- Create the tab button (text-based)
         local tab = {}
         tab.Button = createElement("TextButton", {
-            Name = tabConfig.Name .. "Button", -- Unique name based on tab name
-            Parent = gui.TabsContainer, -- Parent is the tabs container
-            Size = UDim2.new(0, 50, 0, 30), -- Fixed width and height for text button
-            BackgroundColor3 = config.Colors.TabInactive, -- Inactive tab color
-            Text = tabConfig.Name, -- Display the tab name as text
-            TextColor3 = config.Colors.PrimaryText, -- Text color
-            Font = Enum.Font.Gotham, -- Gotham font
-            TextSize = 14, -- Font size
-            LayoutOrder = #gui.Tabs + 1 -- Order in the list
+            Name = tabConfig.Name .. "Button",
+            Parent = gui.TabsContainer,
+            Size = UDim2.new(0, 60, 0, 35),
+            BackgroundColor3 = config.Colors.TabInactive,
+            Text = tabConfig.Name,
+            TextColor3 = config.Colors.PrimaryText,
+            Font = Enum.Font.Gotham,
+            TextSize = 14,
+            TextWrapped = true,
+            LayoutOrder = #gui.Tabs + 1
         })
-        createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = tab.Button}) -- Rounded corners
+        createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = tab.Button})
 
-        -- Create the content frame for the tab
         tab.Content = createElement("ScrollingFrame", {
-            Name = tabConfig.Name .. "_Content", -- Unique name
-            Parent = gui.ContentFrame, -- Parent is the content frame
-            Size = UDim2.new(1, 0, 1, 0), -- Full size of content area
-            Visible = false, -- Hidden by default
-            BackgroundTransparency = 1, -- Transparent background
-            BorderSizePixel = 0, -- No border
-            CanvasSize = UDim2.new(0, 0, 0, 0), -- Initial canvas size
-            ScrollBarImageColor3 = config.Colors.ButtonHover, -- Scrollbar color
-            ScrollBarThickness = 5 -- Scrollbar width
+            Name = tabConfig.Name .. "_Content",
+            Parent = gui.ContentFrame,
+            Size = UDim2.new(1, 0, 1, 0),
+            Visible = false,
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            CanvasSize = UDim2.new(0, 0, 0, 0),
+            ScrollBarImageColor3 = config.Colors.ButtonHover,
+            ScrollBarThickness = 6
         })
         createElement("UIGridLayout", {
-            Parent = tab.Content, -- Parent is the content frame
-            CellPadding = UDim2.new(0, 8, 0, 8), -- Padding between elements
-            CellSize = UDim2.new(0, 100, 0, 35), -- Size of each grid cell
-            SortOrder = Enum.SortOrder.LayoutOrder -- Order based on LayoutOrder
+            Parent = tab.Content,
+            CellPadding = UDim2.new(0, 10, 0, 10),
+            CellSize = UDim2.new(0, 120, 0, 40),
+            SortOrder = Enum.SortOrder.LayoutOrder
         })
 
-        -- Tab switching logic
         tab.Button.MouseButton1Click:Connect(function()
             if tabConfig.KeySystem and not keyValid then
-                keyPrompt.Visible = true -- Show key prompt
-                submitButton.Visible = true -- Show submit button
-                return -- Exit if key is required but not valid
+                keyPrompt.Visible = true
+                submitButton.Visible = true
+                return
             end
             for _, t in pairs(gui.Tabs) do
-                t.Content.Visible = false -- Hide all other tab contents
-                t.Button.BackgroundColor3 = config.Colors.TabInactive -- Set to inactive color
+                t.Content.Visible = false
+                t.Button.BackgroundColor3 = config.Colors.TabInactive
             end
-            tab.Content.Visible = true -- Show current tab content
-            tab.Button.BackgroundColor3 = config.Colors.TabActive -- Set to active color
-            currentTab = tabConfig.Name -- Update current tab
+            tab.Content.Visible = true
+            tab.Button.BackgroundColor3 = config.Colors.TabActive
+            currentTab = tabConfig.Name
         end)
 
-        -- Button creation method for the tab
         function tab:Button(info)
-            info = info or {} -- Use empty table if no info provided
+            info = info or {}
             local buttonConfig = {
-                Name = info.Name or "Button", -- Button text
-                Desc = info.Desc or "", -- Button description
-                Locked = info.Locked or false, -- Whether the button is locked
-                Visible = info.Visible ~= nil and info.Visible or true, -- Visibility
-                Callback = info.Callback or function() print("Button clicked!") end -- Default callback
+                Name = info.Name or "Button",
+                Desc = info.Desc or "",
+                Locked = info.Locked or false,
+                Visible = info.Visible ~= nil and info.Visible or true,
+                Callback = info.Callback or function() print("Button clicked!") end
             }
 
-            -- Create a frame to hold the button and description
             local buttonFrame = createElement("Frame", {
-                Name = buttonConfig.Name .. "_Frame", -- Unique name
-                Parent = tab.Content, -- Parent is the tab content
-                Size = UDim2.new(0, 100, 0, buttonConfig.Desc ~= "" and 50 or 35), -- Adjust height with description
-                BackgroundTransparency = 1, -- Transparent background
-                Visible = buttonConfig.Visible -- Apply visibility
+                Name = buttonConfig.Name .. "_Frame",
+                Parent = tab.Content,
+                Size = UDim2.new(0, 120, 0, buttonConfig.Desc ~= "" and 60 or 40),
+                BackgroundTransparency = 1,
+                Visible = buttonConfig.Visible
             })
 
-            -- Create the button
             local button = createElement("TextButton", {
-                Name = buttonConfig.Name, -- Button name
-                Parent = buttonFrame, -- Parent is the frame
-                Size = UDim2.new(1, 0, buttonConfig.Desc ~= "" and 0.7 or 1, 0), -- Adjust with description
-                BackgroundColor3 = buttonConfig.Locked and config.Colors.LockedButton or config.Colors.Button, -- Color based on lock state
-                Text = buttonConfig.Name, -- Display the name
-                TextColor3 = config.Colors.PrimaryText, -- Text color
-                Font = Enum.Font.Gotham, -- Gotham font
-                TextSize = 14, -- Font size
-                AutoButtonColor = not buttonConfig.Locked -- Disable color change if locked
+                Name = buttonConfig.Name,
+                Parent = buttonFrame,
+                Size = UDim2.new(1, 0, buttonConfig.Desc ~= "" and 0.6 or 1, 0),
+                BackgroundColor3 = buttonConfig.Locked and config.Colors.LockedButton or config.Colors.Button,
+                Text = buttonConfig.Name,
+                TextColor3 = config.Colors.PrimaryText,
+                Font = Enum.Font.Gotham,
+                TextSize = 14,
+                AutoButtonColor = not buttonConfig.Locked
             })
-            createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = button}) -- Rounded corners
+            createElement("UICorner", {CornerRadius = UDim.new(0, 6), Parent = button})
 
-            -- Add description label if provided
             if buttonConfig.Desc ~= "" then
                 local descLabel = createElement("TextLabel", {
-                    Name = buttonConfig.Name .. "_Desc", -- Unique name
-                    Parent = buttonFrame, -- Parent is the frame
-                    Size = UDim2.new(1, 0, 0.3, 0), -- Below the button
-                    Position = UDim2.new(0, 0, 0.7, 0), -- Position below
-                    BackgroundTransparency = 1, -- Transparent background
-                    Text = buttonConfig.Desc, -- Display description
-                    TextColor3 = config.Colors.PrimaryText, -- Text color
-                    Font = Enum.Font.Gotham, -- Gotham font
-                    TextSize = 10, -- Smaller font size
-                    TextWrapped = true, -- Wrap long text
-                    TextXAlignment = Enum.TextXAlignment.Center -- Centered text
+                    Name = buttonConfig.Name .. "_Desc",
+                    Parent = buttonFrame,
+                    Size = UDim2.new(1, 0, 0.4, 0),
+                    Position = UDim2.new(0, 0, 0.6, 0),
+                    BackgroundTransparency = 1,
+                    Text = buttonConfig.Desc,
+                    TextColor3 = config.Colors.SecondaryText,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 12,
+                    TextWrapped = true,
+                    TextXAlignment = Enum.TextXAlignment.Center
                 })
             end
 
-            -- Add interactivity if not locked
             if not buttonConfig.Locked then
                 button.MouseButton1Click:Connect(function()
-                    buttonConfig.Callback() -- Execute callback on click
+                    buttonConfig.Callback()
                 end)
                 button.MouseEnter:Connect(function()
                     TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = config.Colors.ButtonHover}):Play()
@@ -501,22 +490,20 @@ function Stell:Window(info)
                 end)
             end
 
-            return button -- Return the button for further manipulation
+            return button
         end
 
-        gui.Tabs[tabConfig.Name] = tab -- Store the tab in the tabs table
-        return tab -- Return the tab object
+        gui.Tabs[tabConfig.Name] = tab
+        return tab
     end
 
-    -- Toggle Window Visibility
     function gui:Toggle(state)
-        mainFrameVisible = state -- Update internal state
-        gui.MainFrame.Visible = state -- Apply visibility
+        mainFrameVisible = state
+        gui.MainFrame.Visible = state
     end
 
-    -- Close Button Functionality
     gui.CloseButton.MouseButton1Click:Connect(function()
-        gui:Toggle(false) -- Hide the window on click
+        gui:Toggle(false)
     end)
     gui.CloseButton.MouseEnter:Connect(function()
         TweenService:Create(gui.CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = config.Colors.CloseButton}):Play()
@@ -525,23 +512,20 @@ function Stell:Window(info)
         TweenService:Create(gui.CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = config.Colors.Button}):Play()
     end)
 
-    -- Toggle Key Binding
     UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-        if gameProcessedEvent then return end -- Ignore if input is processed by game
+        if gameProcessedEvent then return end
         if input.KeyCode == config.ToggleKey then
-            gui:Toggle(not mainFrameVisible) -- Toggle visibility on key press
+            gui:Toggle(not mainFrameVisible)
         end
     end)
 
-    -- Set initial visibility
     gui:Toggle(config.DefaultOpened)
 
-    return gui -- Return the GUI object
+    return gui
 end
 
--- Initialize Stell UI with an empty window
 function Stell:Init(customConfig)
-    local config = customConfig or {} -- Use empty table if no config provided
+    local config = customConfig or {}
     local gui = self:Window({
         Title = config.Title or Stell.DefaultConfig.WindowTitle,
         Subtitle = config.Subtitle or Stell.DefaultConfig.WindowSubtitle,
@@ -555,8 +539,8 @@ function Stell:Init(customConfig)
         MaxSize = config.MaxSize or Stell.DefaultConfig.MaxSize
     })
 
-    print("Stell UI Library v1.2 initialized.") -- Confirmation message
-    return gui -- Return the initialized GUI
+    print("Stell UI Library v1.3 initialized at " .. os.date("%H:%M, %d/%m/%Y"))
+    return gui
 end
 
-return Stell -- Return the Stell library for use
+return Stell
