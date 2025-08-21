@@ -572,4 +572,54 @@ function Window:Destroy()
     setmetatable(self, nil)
 end
 
+-- Example Usage (Uncomment to run)
+--[[
+local Info = {
+    Title = "Fallback Title",
+    Size = {600, 500},
+    SideBarWhidth = 180,
+    HideSearchBar = false,
+}
+
+local Window = Stell:Window({
+    Title = "My Super Hub",
+    Icon = "door-open",
+    Author = "by .ftgs and .ftgs",
+    Folder = "MySuperHub",
+    Size = UDim2.fromOffset(580, 460),
+    Transparent = true,
+    Theme = "Dark",
+    Resizable = true,
+    SideBarWidth = 200,
+    BackgroundImageTransparency = 0.42,
+    HideSearchBar = true,
+    ScrollBarEnabled = false,
+    User = {
+        Enabled = true,
+        Anonymous = true,
+        Callback = function()
+            print("clicked")
+        end,
+    },
+    KeySystem = {
+        Key = { "1234", "5678" },
+        Note = "Example Key System.",
+        Thumbnail = {
+            Image = "rbxassetid://7072706620",
+            Title = "Thumbnail",
+        },
+        URL = "https://example.com/getkey",
+        SaveKey = true,
+    },
+}, Info)
+
+Window:DisableTopbarButtons({
+    "Close",
+    "Minimize",
+    "Fullscreen",
+})
+
+Window:CreateTopbarButton("MyCustomButton1", "bird", function() print("clicked!") end, 990)
+--]]
+
 return Stell
