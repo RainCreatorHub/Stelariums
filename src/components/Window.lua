@@ -1,14 +1,10 @@
--- Stell UI Library
+-- Stell UI Library (Executor-Compatible)
 local Stell = {}
 Stell.__index = Stell
 
 -- Services
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
-local DataStoreService = game:GetService("DataStoreService")
-
--- DataStore for saving keys (if enabled)
-local KeyDataStore = DataStoreService:GetDataStore("StellKeySystem")
 
 -- UI Instance Creation Helper
 local function createInstance(class, properties)
@@ -82,7 +78,7 @@ function Stell:Window(config, info)
                 "Content area with optional scrollbar",
                 "Background image or video support",
                 "User info with anonymous mode and callback",
-                "Key system with validation and saving",
+                "Key system with validation and saving to Folder/Key.lua",
                 "Transparency toggle",
                 "Customizable top bar buttons",
             },
@@ -422,15 +418,18 @@ function Stell:Window(config, info)
             TextSize = 14,
         })
 
-        -- Load saved key if enabled
+        -- Load saved key if enabled (using executor file functions)
         if window.Config.KeySystem.SaveKey then
-            local success, savedKey = pcall(function()
-                return KeyDataStore:GetAsync(Players.LocalPlayer.UserId .. "_StellKey")
-            end)
-            if success and savedKey and table.find(window.Config.KeySystem.Key, savedKey) then
-                window.KeyInput.Text = savedKey
-                window.KeySystemFrame.Visible = false
-                window.MainFrame.Visible = true
+            local keyPath = window.Config.Folder .. "/Key.lua"
+            if isfile and isfile(keyPath) then
+                local success, savedKey = pcall(function()
+                    return readfile(keyPath)
+                end)
+                if success and savedKey and table.find(window.Config.KeySystem.Key, savedKey) then
+                    window.KeyInput.Text = savedKey
+                    window.KeySystemFrame.Visible = false
+                    window.MainFrame.Visible = true
+                end
             end
         end
 
@@ -441,7 +440,8 @@ function Stell:Window(config, info)
                 window.MainFrame.Visible = true
                 if window.Config.KeySystem.SaveKey then
                     pcall(function()
-                        KeyDataStore:SetAsync(Players.LocalPlayer.UserId .. "_StellKey", key)
+                        makefolder(window.Config.Folder)
+                        writefile(window.Config.Folder .. "/Key.lua", key)
                     end)
                 end
             else
