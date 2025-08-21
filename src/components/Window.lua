@@ -21,33 +21,68 @@ function Stell:Window(Info)
     )
     MainFrame.ClipsDescendants = true
     MainFrame.BorderSizePixel = 0
+    MainFrame.BackgroundTransparency = 1 
     MainFrame.Parent = ScreenGui
 
+    local Border = Instance.new("Frame")
+    Border.Name = "Border"
+    Border.Size = UDim2.new(1, 0, 1, 0)
+    Border.ZIndex = 0
+    Border.Parent = MainFrame
+    
+    local BorderGradient = Instance.new("UIGradient")
+    BorderGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 80, 80)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40))
+    })
+    BorderGradient.Rotation = 90
+    BorderGradient.Parent = Border
+
+    local BorderCorner = Instance.new("UICorner")
+    BorderCorner.CornerRadius = UDim.new(0, 6)
+    BorderCorner.Parent = Border
+
+    local Background = Instance.new("Frame")
+    Background.Name = "Background"
+    Background.Size = UDim2.new(1, -2, 1, -2) 
+    Background.Position = UDim2.fromOffset(1, 1)
+    Background.ZIndex = 1
+    Background.BorderSizePixel = 0
+    Background.Parent = MainFrame
+
+    local BackgroundCorner = Instance.new("UICorner")
+    BackgroundCorner.CornerRadius = UDim.new(0, 5)
+    BackgroundCorner.Parent = Background
+
     if Info.Transparent and Info.Transparent == true then
-        MainFrame.BackgroundTransparency = 1
-        local BackgroundImage = Instance.new("Frame")
-        BackgroundImage.Name = "BackgroundImage"
-        BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
-        BackgroundImage.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-        BackgroundImage.BackgroundTransparency = Info.BackgroundImageTransparency or 0.5
-        BackgroundImage.BorderSizePixel = 0
-        BackgroundImage.Parent = MainFrame
+        Background.BackgroundTransparency = Info.BackgroundImageTransparency or 0.5
     else
-        MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        Background.BackgroundTransparency = 0
     end
 
     if Info.Theme == "Light" then
-        MainFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+        Background.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+        BorderGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 200, 200)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+        })
     elseif Info.Theme == "Darker" then
-        MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        Background.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        BorderGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 25))
+        })
+    else
+        Background.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     end
 
     local SideBar = Instance.new("Frame")
     SideBar.Name = "SideBar"
-    SideBar.Size = UDim2.fromOffset(Info.SideBarWidth or 180, MainFrame.AbsoluteSize.Y)
-    SideBar.Position = UDim2.fromOffset(0, 0)
+    SideBar.Size = UDim2.fromOffset(Info.SideBarWidth or 180, MainFrame.AbsoluteSize.Y - 2)
+    SideBar.Position = UDim2.fromOffset(1, 0)
     SideBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     SideBar.BorderSizePixel = 0
+    SideBar.ZIndex = 2
     SideBar.Parent = MainFrame
 
     local Header = Instance.new("Frame")
@@ -142,6 +177,7 @@ function Stell:Window(Info)
         resizeHandle.Position = UDim2.new(1, 0, 1, 0)
         resizeHandle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         resizeHandle.BackgroundTransparency = 0.8
+        resizeHandle.ZIndex = 3
         resizeHandle.Parent = MainFrame
     end
 
