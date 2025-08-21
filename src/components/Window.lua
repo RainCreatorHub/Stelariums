@@ -21,7 +21,6 @@ function Stell:Window(Info)
     )
     MainFrame.ClipsDescendants = true
     MainFrame.BorderSizePixel = 0
-    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     MainFrame.Parent = ScreenGui
 
     local Corner = Instance.new("UICorner")
@@ -32,8 +31,37 @@ function Stell:Window(Info)
     Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     Stroke.Thickness = 1
     Stroke.LineJoinMode = Enum.LineJoinMode.Round
-    Stroke.Color = Color3.fromRGB(80, 80, 80)
     Stroke.Parent = MainFrame
+
+    local StrokeGradient = Instance.new("UIGradient")
+    StrokeGradient.Rotation = 90
+    StrokeGradient.Parent = Stroke
+
+    if Info.Transparent and Info.Transparent == true then
+        MainFrame.BackgroundTransparency = Info.BackgroundImageTransparency or 0.5
+    else
+        MainFrame.BackgroundTransparency = 0
+    end
+
+    if Info.Theme == "Light" then
+        MainFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+        StrokeGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 200, 200)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+        })
+    elseif Info.Theme == "Darker" then
+        MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        StrokeGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 25))
+        })
+    else
+        MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        StrokeGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 80, 80)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40))
+        })
+    end
 
     local SideBarWidth = Info.SideBarWidth or 200
 
@@ -45,28 +73,25 @@ function Stell:Window(Info)
     SideBar.BorderSizePixel = 0
     SideBar.Parent = MainFrame
 
-    local ContentArea = Instance.new("Frame")
-    ContentArea.Name = "ContentArea"
-    ContentArea.Size = UDim2.new(1, -SideBarWidth, 1, 0)
-    ContentArea.Position = UDim2.fromOffset(SideBarWidth, 0)
-    ContentArea.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    ContentArea.BorderSizePixel = 0
-    ContentArea.Parent = MainFrame
-
     local HeaderArea = Instance.new("Frame")
     HeaderArea.Name = "HeaderArea"
     HeaderArea.Size = UDim2.new(1, 0, 0, 60)
-    HeaderArea.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    HeaderArea.BorderSizePixel = 0
+    HeaderArea.BackgroundTransparency = 1
     HeaderArea.Parent = SideBar
 
     local TabsArea = Instance.new("Frame")
     TabsArea.Name = "TabsArea"
     TabsArea.Size = UDim2.new(1, 0, 1, -60)
     TabsArea.Position = UDim2.fromOffset(0, 60)
-    TabsArea.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    TabsArea.BorderSizePixel = 0
+    TabsArea.BackgroundTransparency = 1
     TabsArea.Parent = SideBar
+
+    local ContentArea = Instance.new("Frame")
+    ContentArea.Name = "ContentArea"
+    ContentArea.Size = UDim2.new(1, -SideBarWidth, 1, 0)
+    ContentArea.Position = UDim2.fromOffset(SideBarWidth, 0)
+    ContentArea.BackgroundTransparency = 1
+    ContentArea.Parent = MainFrame
 
     local Icon = Instance.new("ImageLabel")
     Icon.Name = "Icon"
@@ -160,8 +185,8 @@ function Stell:Window(Info)
     local dragging = false
     local dragInput, dragStart, startPos
     
-    HeaderArea.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+    MainFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.Touch then
             dragging = true
             dragStart = input.Position
             startPos = MainFrame.Position
@@ -174,7 +199,7 @@ function Stell:Window(Info)
         end
     end)
 
-    HeaderArea.InputChanged:Connect(function(input)
+    MainFrame.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
