@@ -1,4 +1,4 @@
--- Stell UI Library (Executor-Compatible)
+-- Stell UI Library (Executor-Compatible with loadstring)
 local Stell = {}
 Stell.__index = Stell
 
