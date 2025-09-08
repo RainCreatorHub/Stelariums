@@ -31,7 +31,7 @@ local GuiService = game:GetService("GuiService")
 
 -- Variables
 local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("CoreGui")
+local PlayerGui = game:WaitForChild("CoreGui")
 
 -- Themes
 DoorLib.Themes = {
