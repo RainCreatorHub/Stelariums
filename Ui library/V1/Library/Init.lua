@@ -1,5 +1,9 @@
 --[[
 Antes de falr a mas o rain/zaka_script usou IA, eu n to querendo fazer mais lib e depois públicar em uma conta ai ninguém usar ai n vale a pena meu mano.
+Estou fazendo isso pq estou sem nada para fazer.
+
+IA usada: Claude
+Web site: claude.ai
 ]]
 
 
