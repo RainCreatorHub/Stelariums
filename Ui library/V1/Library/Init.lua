@@ -10,6 +10,11 @@ Web site: claude.ai
 
 
 
+
+
+
+
+
 -- DoorLib UI Library
 -- Advanced Roblox UI Library with modular structure
 -- Created with cyan, blue, and black theme support
@@ -26,7 +31,7 @@ local GuiService = game:GetService("GuiService")
 
 -- Variables
 local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
+local PlayerGui = Player:WaitForChild("CoreGui")
 
 -- Themes
 DoorLib.Themes = {
