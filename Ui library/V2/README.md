@@ -1,5 +1,11 @@
 # `DoorLib` | Library
 
+> [!NOTE]
+> ESTOU TESTANDO UMA IA.
+> IA: Copilot
+> Web site: [Copilot aqui!](https://github.com/copilot)
+
+
 ## > Ex de uso:
 
 ```lua
