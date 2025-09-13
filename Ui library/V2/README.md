@@ -9,7 +9,7 @@
 ## > Ex de uso:
 
 ```lua
-local DoorLib = loadstring(game:HttpGet(""))()
+local DoorLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/RainCreatorHub/Stelariums/refs/heads/main/Ui%20library/V2/Source.lua"))()
 
 -- Criar janela principal
 local Window = DoorLib:MakeWindow({
