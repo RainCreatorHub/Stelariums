@@ -1,5 +1,7 @@
--- Door Library
--- Created by RainCreatorHub
+--[[Door Library
+Created by RainCreatorHub
+n é eu nn é o copilot
+]]
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
