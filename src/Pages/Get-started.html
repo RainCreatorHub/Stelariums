@@ -1,0 +1,294 @@
+<!-- Site-Test/src/Pages/Get-started.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Started - Site-Test</title>
+    <link rel="stylesheet" href="../Code/Main.css">
+    <style>
+        /* Custom styles for Get-started page */
+        .getting-started-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        
+        .hero-section {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .hero-section h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .hero-section p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid #3498db;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .feature-card p {
+            color: #555;
+            line-height: 1.7;
+        }
+        
+        .code-example {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+        }
+        
+        .code-example code {
+            color: #2c3e50;
+            font-size: 1rem;
+            display: block;
+        }
+        
+        .steps-container {
+            margin: 60px 0;
+        }
+        
+        .step {
+            display: flex;
+            margin-bottom: 30px;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            background-color: #3498db;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+            font-size: 1.3rem;
+        }
+        
+        .step-content h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .step-content p {
+            color: #555;
+            line-height: 1.7;
+        }
+        
+        .cta-section {
+            text-align: center;
+            padding: 60px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            margin: 60px 0;
+        }
+        
+        .cta-section h2 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .cta-section p {
+            color: #555;
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .btn-large {
+            display: inline-block;
+            padding: 15px 40px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.3rem;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-large:hover {
+            background-color: #2980b9;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero-section p {
+                font-size: 1.1rem;
+            }
+            
+            .feature-card {
+                padding: 20px;
+            }
+            
+            .step {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .step-number {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .cta-section {
+                padding: 40px 20px;
+            }
+            
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+            
+            .cta-section p {
+                font-size: 1.1rem;
+            }
+            
+            .btn-large {
+                padding: 12px 30px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="getting-started-container">
+        <div class="hero-section">
+            <h1>Bem-vindo ao Site-Test</h1>
+            <p>Sua plataforma completa para desenvolvimento e integração de soluções modernas</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>Documentação Completa</h3>
+                <p>Nossa documentação abrangente cobre todos os aspectos do nosso sistema, desde configuração inicial até recursos avançados, com exemplos práticos e melhores práticas.</p>
+            </div>
+            <div class="feature-card">
+                <h3>APIs Modernas</h3>
+                <p>Acesse nossas APIs RESTful e GraphQL com autenticação segura, suporte a webhooks e bibliotecas client-side em múltiplas linguagens.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Integrações</h3>
+                <p>Conecte-se facilmente com as principais plataformas do mercado como Slack, GitHub, Google Workspace e muito mais com plugins prontos para uso.</p>
+            </div>
+        </div>
+
+        <h2 style="text-align: center; margin: 60px 0 40px;">Comece Agora</h2>
+        
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Crie sua conta</h3>
+                    <p>Registre-se gratuitamente em nossa plataforma. O processo leva menos de 30 segundos e não requer cartão de crédito.</p>
+                    <div class="code-example">
+                        <code>curl -X POST https://api.site-test.com/v1/register \
+                          -H "Content-Type: application/json" \
+                          -d '{"email": "seu@email.com", "password": "sua-senha-segura"}'</code>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Instale o SDK</h3>
+                    <p>Adicione nossa biblioteca ao seu projeto usando npm, yarn ou CDN. Nós suportamos todas as principais frameworks modernos.</p>
+                    <div class="code-example">
+                        <code>// npm
+npm install site-test-sdk
+
+// yarn
+yarn add site-test-sdk
+
+// CDN
+<script src="https://cdn.site-test.com/v1/sdk.js"></script></code>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Configure sua primeira integração</h3>
+                    <p>Use nosso assistente de configuração para conectar sua aplicação. Basta seguir os passos no painel administrativo.</p>
+                    <div class="code-example">
+                        <code>// Inicialização básica
+const client = new SiteTestClient({
+  apiKey: 'sua-chave-api-aqui',
+  environment: 'production'
+});
+
+// Iniciar serviço
+client.start().then(() => {
+  console.log('Site-Test iniciado com sucesso!');
+});</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2>Pronto para começar?</h2>
+            <p>Junte-se a milhares de desenvolvedores que já estão utilizando Site-Test para criar aplicações incríveis.</p>
+            <a href="/Code/Main.html" class="btn-large">Acessar Documentação Completa</a>
+        </div>
+    </div>
+
+    <script src="../Code/Main.js"></script>
+</body>
+</html>
