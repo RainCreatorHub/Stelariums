@@ -1,4 +1,5 @@
--- 🌌 STELARIUM UI LIBRARY v4 — TUDO CONFIGURÁVEL, ESTILO DROPDOWN, PADRÃO INFO.NAME OR
+-- 🌌 STELARIUM UI LIBRARY v4 - CORRETO E FUNCIONAL
+-- Coloque isso em ServerScriptService ou ReplicatedStorage
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -9,19 +10,15 @@ local TweenService = game:GetService("TweenService")
 local Lib = {}
 Lib.__index = Lib
 
+-- Armazena janelas criadas
 Lib.Windows = {}
-Lib.Tooltips = {}
-Lib.Notifications = {}
-Lib.ContextMenus = {}
-Lib.UsageHistory = {}
-Lib.Elements = {}
 
--- Simulação de Registro
+-- Simulação de registro
 local fakeRegistry = {}
 function getreg() return fakeRegistry end
 function setreg(t) fakeRegistry = t end
 
--- Função universal de Tooltip
+-- Função de Tooltip
 local function CreateTooltip(text, parent)
     if not text or text == "" then return nil end
     local tooltip = Instance.new("Frame")
@@ -48,7 +45,6 @@ local function CreateTooltip(text, parent)
     label.TextYAlignment = Enum.TextYAlignment.Center
     label.Parent = tooltip
 
-    -- Triângulo embaixo
     local triangle = Instance.new("ImageLabel")
     triangle.Size = UDim2.new(0, 15, 0, 8)
     triangle.BackgroundTransparency = 1
@@ -73,66 +69,8 @@ local function CreateTooltip(text, parent)
     }
 end
 
--- Função de Toast (notificação)
-function Lib:CreateToast(message, duration)
-    duration = duration or 3
-    local toast = Instance.new("Frame")
-    toast.Size = UDim2.new(0, 280, 0, 65)
-    toast.Position = UDim2.new(0.5, -140, 1, -90)
-    toast.BackgroundTransparency = 0.2
-    toast.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    toast.BorderSizePixel = 0
-    toast.ZIndex = 9999
-    toast.Parent = PlayerGui
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = toast
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Thickness = 1.5
-    stroke.Color = Color3.fromRGB(0, 162, 255)
-    stroke.Parent = toast
-
-    local icon = Instance.new("ImageLabel")
-    icon.Size = UDim2.new(0, 26, 0, 26)
-    icon.Position = UDim2.new(0, 18, 0.5, -13)
-    icon.BackgroundTransparency = 1
-    icon.Image = "rbxassetid://9012137260"
-    icon.Parent = toast
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -60, 0, 26)
-    label.Position = UDim2.new(0, 50, 0.5, -13)
-    label.BackgroundTransparency = 1
-    label.Text = message
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 14
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = toast
-
-    toast.Position = UDim2.new(0.5, -140, 1, 30)
-    TweenService:Create(toast, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -140, 1, -90)}):Play()
-
-    table.insert(Lib.Notifications, toast)
-
-    task.delay(duration, function()
-        if not toast or not toast.Parent then return end
-        TweenService:Create(toast, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -140, 1, 30)}):Play()
-        task.delay(0.3, function()
-            if toast then toast:Destroy() end
-        end)
-    end)
-
-    return toast
-end
-
 -- MakeWindow
 function Lib:MakeWindow(config)
-    if keyGui and screenGui then
-       print("Hi!")
-    end
     config = config or {}
     local Title = config.Title or "Stelarium Window"
     local Subtitle = config.Subtitle or ""
@@ -258,7 +196,7 @@ function Lib:MakeWindow(config)
         end
     end
 
-    -- Janela
+    -- Janela principal
     local window = {}
     window.Tabs = {}
     window.Elements = {}
@@ -469,8 +407,7 @@ function Lib:MakeWindow(config)
         tab.Button = tabButton
         tab.Content = tabContent
 
-        -- ✅ TODOS OS ELEMENTOS AGORA USAM CONFIG PADRÃO
-
+        -- Elementos do Tab
         function tab:Label(config)
             config = config or {}
             local Text = config.Text or "Novo Rótulo"
@@ -1061,7 +998,7 @@ function Lib:MakeWindow(config)
         return tab
     end
 
-    -- Drag
+    -- Drag & Drop
     local dragging = false
     local dragStart = nil
     titleBar.InputBegan:Connect(function(input)
@@ -1086,11 +1023,9 @@ function Lib:MakeWindow(config)
     return window
 end
 
--- Exporta
+-- Exporta globalmente
 if not _G.Lib then
     _G.Lib = setmetatable({}, Lib)
 end
 
 print("✅ Stelarium UI Library v4 carregada!")
-print("✨ Todos os elementos agora usam configuração estilo: { Name = '...', Text = '...', Desc = '...', Default = ... }")
-print("✅ Consistente, extensível, com Tooltips, Toasts, Controle Dinâmico e AI Assist integrado.")
