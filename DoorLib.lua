@@ -1,283 +1,296 @@
--- UI Library
-local UILib = {}
-UILib.__index = UILib
+-- Bind AI test
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
 
--- Função principal: criar janela
-function UILib:MakeWindow(info)
-    local Window = {}
-    setmetatable(Window, UILib)
+-- ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = PlayerGui
+screenGui.ResetOnSpawn = true
 
-    local Players = game:GetService("Players")
-    local Player = Players.LocalPlayer
-    local PlayerGui = Player:WaitForChild("PlayerGui")
+-- Dropdown principal
+local dropdownFrame = Instance.new("TextButton")
+dropdownFrame.Size = UDim2.new(0, 200, 0, 30)
+dropdownFrame.Position = UDim2.new(0.5, -100, 0.5, -15)
+dropdownFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+dropdownFrame.Text = ""
+dropdownFrame.Parent = screenGui
 
-    -- ScreenGui
-    Window.ScreenGui = Instance.new("ScreenGui")
-    Window.ScreenGui.Parent = PlayerGui
-    Window.ScreenGui.ResetOnSpawn = true
+local dropdownUICorner = Instance.new("UICorner")
+dropdownUICorner.CornerRadius = UDim.new(0, 8)
+dropdownUICorner.Parent = dropdownFrame
 
-    -- Frame principal
-    Window.Frame = Instance.new("Frame")
-    Window.Frame.Size = info.Size or UDim2.new(0,500,0,350)
-    Window.Frame.Position = info.Position or UDim2.new(0.5,-250,0.5,-175)
-    Window.Frame.BackgroundColor3 = info.BackgroundColor or Color3.fromRGB(25,25,25)
-    Window.Frame.BorderSizePixel = 1
-    Window.Frame.BorderColor3 = Color3.fromRGB(0,0,0)
-    Window.Frame.Parent = Window.ScreenGui
+local dropdownStroke = Instance.new("UIStroke")
+dropdownStroke.Thickness = 1
+dropdownStroke.Color = Color3.fromRGB(0,0,0)
+dropdownStroke.Parent = dropdownFrame
 
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0,8)
-    corner.Parent = Window.Frame
+-- Label do Dropdown
+local dropdownLabel = Instance.new("TextLabel")
+dropdownLabel.Size = UDim2.new(1, 0, 1, 0)
+dropdownLabel.Position = UDim2.new(0, 10, 0, 0)
+dropdownLabel.BackgroundTransparency = 1
+dropdownLabel.Text = "Dropdown example"
+dropdownLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+dropdownLabel.Font = Enum.Font.Gotham
+dropdownLabel.TextSize = 14
+dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+dropdownLabel.Parent = dropdownFrame
 
-    Window.Tabs = {}
+-- Container da opção selecionada
+local selectedContainer = Instance.new("Frame")
+selectedContainer.Size = UDim2.new(0, 50, 0, 20)
+selectedContainer.Position = UDim2.new(1, -55, 0.5, -10)
+selectedContainer.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+selectedContainer.BorderSizePixel = 0
+selectedContainer.Parent = dropdownFrame
 
-    -- Criar Tab
-    function Window:MakeTab(info)
-        local Tab = {}
-        setmetatable(Tab, UILib)
-        Tab.Title = info.Title or "Tab"
-        Tab.Frame = Instance.new("Frame")
-        Tab.Frame.Size = UDim2.new(1,0,1,0)
-        Tab.Frame.Position = UDim2.new(0,0,0,0)
-        Tab.Frame.BackgroundTransparency = 1
-        Tab.Frame.Visible = true
-        Tab.Frame.Parent = Window.Frame
+local selectedCorner = Instance.new("UICorner")
+selectedCorner.CornerRadius = UDim.new(0, 6)
+selectedCorner.Parent = selectedContainer
 
-        Tab.Sections = {}
+local selectedStroke = Instance.new("UIStroke")
+selectedStroke.Thickness = 1
+selectedStroke.Color = Color3.fromRGB(0,0,0)
+selectedStroke.Parent = selectedContainer
 
-        -- Section (separador visual)
-        function Tab:Section(info)
-            local Section = {}
-            Section.Frame = Instance.new("Frame")
-            Section.Frame.Size = UDim2.new(1,0,0,25)
-            Section.Frame.BackgroundTransparency = 1
-            Section.Frame.Parent = Tab.Frame
+local selectedLabel = Instance.new("TextLabel")
+selectedLabel.Size = UDim2.new(1, 0, 1, 0)
+selectedLabel.Position = UDim2.new(0, 0, 0, 0)
+selectedLabel.BackgroundTransparency = 1
+selectedLabel.Text = ""
+selectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+selectedLabel.Font = Enum.Font.Gotham
+selectedLabel.TextSize = 14
+selectedLabel.TextXAlignment = Enum.TextXAlignment.Center
+selectedLabel.Parent = selectedContainer
 
-            local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(1,0,1,0)
-            label.Position = UDim2.new(0,5,0,0)
-            label.BackgroundTransparency = 1
-            label.Text = info.Title or ""
-            label.TextColor3 = Color3.fromRGB(255,255,255)
-            label.Font = Enum.Font.Gotham
-            label.TextSize = 14
-            label.TextXAlignment = Enum.TextXAlignment.Left
-            label.Parent = Section.Frame
+-- Options ScrollFrame
+local optionsFrame = Instance.new("ScrollingFrame")
+optionsFrame.Size = UDim2.new(1, 0, 0, 0)
+optionsFrame.Position = UDim2.new(0, 0, 1, 5)
+optionsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+optionsFrame.BorderSizePixel = 0
+optionsFrame.Visible = false
+optionsFrame.ScrollBarThickness = 5
+optionsFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
+optionsFrame.ClipsDescendants = true
+optionsFrame.Parent = dropdownFrame
 
-            table.insert(Tab.Sections, Section)
-            return Section
-        end
+local optionsCorner = Instance.new("UICorner")
+optionsCorner.CornerRadius = UDim.new(0, 8)
+optionsCorner.Parent = optionsFrame
 
-        -- SearchBar
-        function Tab:SearchBar(info)
-            local SB = {}
-            SB.Text = info.Text or ""
-            SB.Placeholder = info.Placeholder or "Search..."
-            SB.Callback = info.Callback
+local optionsLayout = Instance.new("UIListLayout")
+optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+optionsLayout.Padding = UDim.new(0, 4)
+optionsLayout.FillDirection = Enum.FillDirection.Vertical
+optionsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+optionsLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+optionsLayout.Parent = optionsFrame
 
-            SB.Box = Instance.new("TextBox")
-            SB.Box.Size = UDim2.new(0,150,0,25)
-            SB.Box.Position = info.Position or UDim2.new(0,10,0,50)
-            SB.Box.BackgroundColor3 = Color3.fromRGB(35,35,35)
-            SB.Box.TextColor3 = Color3.fromRGB(255,255,255)
-            SB.Box.PlaceholderText = SB.Placeholder
-            SB.Box.Text = SB.Text
-            SB.Box.ClearTextOnFocus = false
-            SB.Box.BorderSizePixel = 1
-            SB.Box.BorderColor3 = Color3.fromRGB(0,0,0)
-            SB.Box.Parent = Tab.Frame
+-- Opções
+local options = {"Op 1","Op 2","Op 3","Op 4","Op 5","Op 6","Op 7","Op 8","Op 9"}
+local optionButtons = {}
 
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0,6)
-            corner.Parent = SB.Box
+for _, option in pairs(options) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -10, 0, 25)
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.Text = option
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.Position = UDim2.new(0, 5, 0, 0)
+    btn.Parent = optionsFrame
 
-            SB.Box:GetPropertyChangedSignal("Text"):Connect(function()
-                SB.Text = SB.Box.Text
-                if SB.Callback then SB.Callback(SB.Text) end
-            end)
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = btn
 
-            return SB
-        end
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Thickness = 1
+    btnStroke.Color = Color3.fromRGB(0,0,0)
+    btnStroke.Parent = btn
 
-        -- Dropdown
-        function Tab:Dropdown(info)
-            local Dropdown = {}
-            Dropdown.Options = info.Values or {}
-            Dropdown.SelectedValues = info.Value or {}
-            Dropdown.Multi = info.Multi or false
-            Dropdown.AllowNone = info.AllowNone or false
-            Dropdown.Callback = info.Callback
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    end)
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    end)
 
-            Dropdown.Frame = Instance.new("TextButton")
-            Dropdown.Frame.Size = UDim2.new(0,200,0,30)
-            Dropdown.Frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
-            Dropdown.Frame.BorderSizePixel = 1
-            Dropdown.Frame.BorderColor3 = Color3.fromRGB(0,0,0)
-            Dropdown.Frame.Text = ""
-            Dropdown.Frame.Parent = Tab.Frame
-
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0,8)
-            corner.Parent = Dropdown.Frame
-
-            -- Label
-            Dropdown.Label = Instance.new("TextLabel")
-            Dropdown.Label.Size = UDim2.new(1,0,1,0)
-            Dropdown.Label.Position = UDim2.new(0,10,0,0)
-            Dropdown.Label.BackgroundTransparency = 1
-            Dropdown.Label.Text = info.Title or "Dropdown"
-            Dropdown.Label.TextColor3 = Color3.fromRGB(255,255,255)
-            Dropdown.Label.Font = Enum.Font.Gotham
-            Dropdown.Label.TextSize = 14
-            Dropdown.Label.TextXAlignment = Enum.TextXAlignment.Left
-            Dropdown.Label.Parent = Dropdown.Frame
-
-            -- Selected Box
-            Dropdown.SelectedBox = Instance.new("TextLabel")
-            Dropdown.SelectedBox.Size = UDim2.new(0,80,1,0)
-            Dropdown.SelectedBox.Position = UDim2.new(1,-85,0,0)
-            Dropdown.SelectedBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
-            Dropdown.SelectedBox.BorderSizePixel = 1
-            Dropdown.SelectedBox.BorderColor3 = Color3.fromRGB(0,0,0)
-            Dropdown.SelectedBox.Text = table.concat(Dropdown.SelectedValues,", ")
-            Dropdown.SelectedBox.TextColor3 = Color3.fromRGB(255,255,255)
-            Dropdown.SelectedBox.Font = Enum.Font.Gotham
-            Dropdown.SelectedBox.TextSize = 14
-            Dropdown.SelectedBox.Parent = Dropdown.Frame
-
-            local selCorner = Instance.new("UICorner")
-            selCorner.CornerRadius = UDim.new(0,6)
-            selCorner.Parent = Dropdown.SelectedBox
-
-            -- Options Frame
-            Dropdown.OptionsFrame = Instance.new("ScrollingFrame")
-            Dropdown.OptionsFrame.Size = UDim2.new(1,0,0,0)
-            Dropdown.OptionsFrame.Position = UDim2.new(0,0,1,5)
-            Dropdown.OptionsFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-            Dropdown.OptionsFrame.BorderSizePixel = 1
-            Dropdown.OptionsFrame.BorderColor3 = Color3.fromRGB(0,0,0)
-            Dropdown.OptionsFrame.Visible = false
-            Dropdown.OptionsFrame.ScrollBarThickness = 5
-            Dropdown.OptionsFrame.Parent = Dropdown.Frame
-
-            local optionsCorner = Instance.new("UICorner")
-            optionsCorner.CornerRadius = UDim.new(0,8)
-            optionsCorner.Parent = Dropdown.OptionsFrame
-
-            local layout = Instance.new("UIListLayout")
-            layout.SortOrder = Enum.SortOrder.LayoutOrder
-            layout.Padding = UDim.new(0,5)
-            layout.Parent = Dropdown.OptionsFrame
-
-            Dropdown.OptionButtons = {}
-
-            -- SearchBar dentro do Dropdown
-            if info.SearchBar then
-                Dropdown.SearchBox = Instance.new("TextBox")
-                Dropdown.SearchBox.Size = UDim2.new(1,0,0,25)
-                Dropdown.SearchBox.Position = UDim2.new(0,0,0,0)
-                Dropdown.SearchBox.PlaceholderText = (info.SearchBarSettings and info.SearchBarSettings.Placeholder) or "Search..."
-                Dropdown.SearchBox.BackgroundColor3 = Color3.fromRGB(40,40,40)
-                Dropdown.SearchBox.TextColor3 = Color3.fromRGB(255,255,255)
-                Dropdown.SearchBox.BorderSizePixel = 1
-                Dropdown.SearchBox.BorderColor3 = Color3.fromRGB(0,0,0)
-                Dropdown.SearchBox.ClearTextOnFocus = false
-                Dropdown.SearchBox.Parent = Dropdown.OptionsFrame
-                local corner = Instance.new("UICorner")
-                corner.CornerRadius = UDim.new(0,6)
-                corner.Parent = Dropdown.SearchBox
-
-                Dropdown.SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-                    local search = Dropdown.SearchBox.Text:lower()
-                    for _,btn in ipairs(Dropdown.OptionButtons) do
-                        btn.Visible = btn.Text:lower():find(search) ~= nil
-                    end
-                end)
+    btn.MouseButton1Click:Connect(function()
+        -- Remove linha azul de todas as outras opções
+        for _, otherBtn in ipairs(optionButtons) do
+            if otherBtn:FindFirstChild("selectedLine") then
+                otherBtn.selectedLine:Destroy()
             end
-
-            -- Criar Option Buttons
-            for _,option in pairs(Dropdown.Options) do
-                local btn = Instance.new("TextButton")
-                btn.Size = UDim2.new(1,-10,0,25)
-                btn.Position = UDim2.new(0,5,0,0)
-                btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
-                btn.Text = option
-                btn.TextColor3 = Color3.fromRGB(255,255,255)
-                btn.Font = Enum.Font.Gotham
-                btn.TextSize = 14
-                btn.BorderSizePixel = 1
-                btn.BorderColor3 = Color3.fromRGB(0,0,0)
-                btn.Parent = Dropdown.OptionsFrame
-
-                local btnCorner = Instance.new("UICorner")
-                btnCorner.CornerRadius = UDim.new(0,6)
-                btnCorner.Parent = btn
-
-                btn.MouseButton1Click:Connect(function()
-                    local idx = table.find(Dropdown.SelectedValues, option)
-                    if Dropdown.Multi then
-                        if idx then
-                            if Dropdown.AllowNone or #Dropdown.SelectedValues > 1 then
-                                table.remove(Dropdown.SelectedValues, idx)
-                            end
-                        else
-                            table.insert(Dropdown.SelectedValues, option)
-                        end
-                    else
-                        Dropdown.SelectedValues = {option}
-                    end
-                    Dropdown.SelectedBox.Text = table.concat(Dropdown.SelectedValues,", ")
-                    if Dropdown.Callback then
-                        Dropdown.Callback(Dropdown.SelectedValues)
-                    end
-                end)
-
-                table.insert(Dropdown.OptionButtons, btn)
-            end
-
-            -- Toggle Dropdown
-            local open = false
-            Dropdown.Frame.MouseButton1Click:Connect(function()
-                open = not open
-                if open then
-                    Dropdown.OptionsFrame.Visible = true
-                    Dropdown.OptionsFrame:TweenSize(UDim2.new(1,0,0,#Dropdown.OptionButtons*30 + (Dropdown.SearchBox and 30 or 0)), "Out", "Quad", 0.3, true)
-                else
-                    Dropdown.OptionsFrame:TweenSize(UDim2.new(1,0,0,0), "Out", "Quad", 0.3, true)
-                    task.wait(0.3)
-                    Dropdown.OptionsFrame.Visible = false
-                end
-            end)
-
-            return Dropdown
         end
 
-        -- Button element
-        function Tab:Button(info)
-            local Button = Instance.new("TextButton")
-            Button.Size = info.Size or UDim2.new(0,120,0,30)
-            Button.Position = info.Position or UDim2.new(0,10,0,100)
-            Button.Text = info.Text or "Button"
-            Button.BackgroundColor3 = info.BackgroundColor or Color3.fromRGB(50,50,50)
-            Button.TextColor3 = info.TextColor or Color3.fromRGB(255,255,255)
-            Button.Parent = Tab.Frame
+        -- Cria a linha azul com bordas arredondadas apenas na opção selecionada
+        local selectedLine = Instance.new("Frame")
+        selectedLine.Name = "selectedLine"
+        selectedLine.Size = UDim2.new(0, 3, 1, 0)
+        selectedLine.Position = UDim2.new(0, 0, 0, 0)
+        selectedLine.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+        selectedLine.BorderSizePixel = 0
+        selectedLine.Parent = btn
 
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0,6)
-            corner.Parent = Button
+        local lineCorner = Instance.new("UICorner")
+        lineCorner.CornerRadius = UDim.new(0, 2)
+        lineCorner.Parent = selectedLine
 
-            if info.Callback then
-                Button.MouseButton1Click:Connect(info.Callback)
-            end
+        -- Atualiza container de opção selecionada
+        selectedLabel.Text = btn.Text
+        -- NÃO fecha o dropdown
+    end)
 
-            return Button
-        end
-
-        table.insert(Window.Tabs, Tab)
-        return Tab
-    end
-
-    return Window
+    table.insert(optionButtons, btn)
 end
 
-return UILib
+-- Atualiza CanvasSize
+local function updateCanvasSize()
+    local totalHeight = 0
+    for _, btn in ipairs(optionButtons) do
+        if btn.Visible then
+            totalHeight = totalHeight + btn.AbsoluteSize.Y
+        end
+    end
+    optionsFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+end
+
+optionsFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateCanvasSize)
+for _, btn in ipairs(optionButtons) do
+    btn:GetPropertyChangedSignal("Visible"):Connect(updateCanvasSize)
+end
+
+-- Lupa
+local searchButton = Instance.new("TextButton")
+searchButton.Size = UDim2.new(0, 30, 0, 30)
+searchButton.Position = UDim2.new(0.5, 105, 0.5, -15)
+searchButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+searchButton.Text = "🔍"
+searchButton.BorderSizePixel = 0
+searchButton.Parent = screenGui
+
+local searchUICorner = Instance.new("UICorner")
+searchUICorner.CornerRadius = UDim.new(0, 6)
+searchUICorner.Parent = searchButton
+
+local searchButtonStroke = Instance.new("UIStroke")
+searchButtonStroke.Thickness = 1
+searchButtonStroke.Color = Color3.fromRGB(0,0,0)
+searchButtonStroke.Parent = searchButton
+
+-- Barra de pesquisa
+local searchBox = Instance.new("TextBox")
+searchBox.Size = UDim2.new(0, 0, 0, 25)
+searchBox.Position = UDim2.new(0.5, 105, 0.5, -12)
+searchBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+searchBox.PlaceholderText = " "
+searchBox.Text = ""
+searchBox.Visible = false
+searchBox.TextTransparency = 0
+searchBox.TextSize = 14
+searchBox.ClearTextOnFocus = false
+searchBox.BorderSizePixel = 0
+searchBox.ClipsDescendants = true
+searchBox.Parent = screenGui
+
+local searchBoxCorner = Instance.new("UICorner")
+searchBoxCorner.CornerRadius = UDim.new(0, 6)
+searchBoxCorner.Parent = searchBox
+
+local searchBoxStroke = Instance.new("UIStroke")
+searchBoxStroke.Thickness = 1
+searchBoxStroke.Color = Color3.fromRGB(0,0,0)
+searchBoxStroke.Parent = searchBox
+
+-- Variáveis de estado
+local dropdownOpen = false
+local searchOpen = false
+
+-- Funções do Dropdown
+function OpenDrop()
+    if not dropdownOpen then
+        dropdownOpen = true
+        optionsFrame.Visible = true
+        optionsFrame:TweenSize(UDim2.new(1,0,0,math.min(#optionButtons*27,150)), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true)
+    end
+end
+
+function CloseDrop()
+    if dropdownOpen then
+        dropdownOpen = false
+        optionsFrame:TweenSize(UDim2.new(1,0,0,0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true)
+        task.delay(0.25,function()
+            optionsFrame.Visible = false
+        end)
+    end
+end
+
+-- Funções da SearchBar
+function OpenDropSearch()
+    if not searchOpen then
+        searchOpen = true
+        searchButton:TweenPosition(UDim2.new(0.5, 105, 0.5, -46), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true)
+        searchBox.Visible = true
+        searchBox.TextTransparency = 1
+        searchBox:TweenSize(UDim2.new(0, 150, 0, 25), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true)
+        task.spawn(function()
+            for i = 1, 0, -0.1 do
+                searchBox.TextTransparency = i
+                task.wait(0.025)
+            end
+        end)
+    end
+end
+
+function CloseDropSearch()
+    if searchOpen then
+        searchOpen = false
+        searchBox:TweenSize(UDim2.new(0,0,0,25), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true)
+        task.spawn(function()
+            for i = 0, 1, 0.1 do
+                searchBox.TextTransparency = i
+                task.wait(0.025)
+            end
+        end)
+        task.delay(0.25,function()
+            searchBox.Visible = false
+            searchButton:TweenPosition(UDim2.new(0.5, 105, 0.5, -15), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true)
+        end)
+    end
+end
+
+-- Eventos de clique
+dropdownFrame.MouseButton1Click:Connect(function()
+    if dropdownOpen then
+        CloseDrop()
+    else
+        OpenDrop()
+    end
+end)
+
+searchButton.MouseButton1Click:Connect(function()
+    if searchOpen then
+        CloseDropSearch()
+    else
+        OpenDropSearch()
+    end
+end)
+
+-- Filtrar opções
+searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local text = searchBox.Text:lower()
+    for _, btn in pairs(optionButtons) do
+        if text == "" or btn.Text:lower():find(text) then
+            btn.Visible = true
+        else
+            btn.Visible = false
+        end
+    end
+    updateCanvasSize()
+end)
