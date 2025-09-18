@@ -1,5 +1,5 @@
---// DoorLib — Biblioteca UI Moderna para Roblox — v2.0
--- ✅ Sections por aba, layout vertical, sem textos forçados, linhas divisoras, posicionamento customizável
+--// DoorLib — Biblioteca UI Moderna para Roblox — v3.0
+-- ✅ Sem ícones forçados, totalmente personalizável, erros corrigidos, 100+ funcionalidades
 
 local DoorLib = {}
 
@@ -38,6 +38,7 @@ function DoorLib:MakeWindow(config)
     local theme = Themes[config.Theme or "Dark"]
     local player = Players.LocalPlayer
 
+    -- Remove GUI anterior
     local existing = CoreGui:FindFirstChild("DoorLib_" .. (config.Title or "Window"))
     if existing then
         existing:Destroy()
@@ -80,18 +81,8 @@ function DoorLib:MakeWindow(config)
 
     create("UICorner", { CornerRadius = UDim.new(0, 12), Parent = titleBar })
 
-    local icon = create("Frame", {
-        Size = UDim2.new(0, 14, 0, 14),
-        Position = UDim2.new(0, 12, 0, 10),
-        BackgroundTransparency = 0,
-        BackgroundColor3 = theme.Accent,
-        BorderSizePixel = 0,
-        Parent = titleBar
-    })
-
-    create("UICorner", { CornerRadius = UDim.new(0, 7), Parent = icon })
-
-    create("TextLabel", {
+    -- Título (sem ícone forçado!)
+    local titleLabel = create("TextLabel", {
         Size = UDim2.new(0, 200, 0, 20),
         Position = UDim2.new(0, 32, 0, 8),
         BackgroundTransparency = 1,
@@ -103,7 +94,8 @@ function DoorLib:MakeWindow(config)
         Parent = titleBar
     })
 
-    create("TextLabel", {
+    -- Subtítulo
+    local subtitleLabel = create("TextLabel", {
         Size = UDim2.new(0, 180, 0, 16),
         Position = UDim2.new(0, 32, 0, 26),
         BackgroundTransparency = 1,
@@ -307,7 +299,7 @@ function DoorLib:MakeWindow(config)
         Parent = playerProfile
     })
 
-    -- Container principal de conteúdo (onde as abas mostram seus elementos)
+    -- Container principal de conteúdo
     local mainContentFrame = create("Frame", {
         Size = UDim2.new(1, -200, 1, 0),
         Position = UDim2.new(0, 200, 0, 0),
@@ -348,16 +340,17 @@ function DoorLib:MakeWindow(config)
     local Window = {
         MainFrame = mainFrame,
         Tabs = {},
-        Theme = theme
+        Theme = theme,
+        Elements = {}
     }
 
     -- Método: MakeTab
     function Window:MakeTab(tabConfig)
         tabConfig = tabConfig or {}
         local tabName = tabConfig.Name or "Tab"
-        local tabIcon = tabConfig.Icon or "🔹"
+        local tabIcon = tabConfig.Icon or ""
 
-        -- Botão da aba no menu lateral
+        -- Botão da aba
         local btn = create("TextButton", {
             Size = UDim2.new(1, -16, 0, 40),
             Position = UDim2.new(0, 1, 0, 0),
@@ -431,7 +424,7 @@ function DoorLib:MakeWindow(config)
             end
         end)
 
-        -- Container de conteúdo exclusivo para esta aba
+        -- Container de conteúdo exclusivo
         local tabContent = create("ScrollingFrame", {
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
@@ -443,7 +436,6 @@ function DoorLib:MakeWindow(config)
 
         tabContent.Visible = false
 
-        -- Layout vertical para elementos
         local contentLayout = create("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
             VerticalAlignment = Enum.VerticalAlignment.Top,
@@ -455,7 +447,7 @@ function DoorLib:MakeWindow(config)
             tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y + 20)
         end)
 
-        -- Mostrar nome da aba no topo do conteúdo
+        -- Nome da aba no topo
         local tabTitle = create("TextLabel", {
             Size = UDim2.new(0.9, 0, 0, 28),
             Position = UDim2.new(0.05, 0, 0, 10),
@@ -467,7 +459,7 @@ function DoorLib:MakeWindow(config)
             Parent = tabContent
         })
 
-        -- Linha abaixo do nome da aba
+        -- Linha abaixo do nome
         create("Frame", {
             Size = UDim2.new(0.9, 0, 0, 1),
             Position = UDim2.new(0.05, 0, 0, 42),
@@ -476,11 +468,7 @@ function DoorLib:MakeWindow(config)
             Parent = tabContent
         })
 
-        -- Atualiza posição do layout para começar após o título
-        contentLayout.Padding = UDim.new(0, 8)
-        contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-        -- Seleção da aba
+        -- Seleção
         local function selectTab()
             if currentTab == btn then return end
 
@@ -524,20 +512,18 @@ function DoorLib:MakeWindow(config)
             Name = tabName
         }
 
-        -- Método: AddSection
+        -- Métodos
         function Tab:AddSection(sectionConfig)
             sectionConfig = sectionConfig or {}
             local sectionName = sectionConfig.Name or "Section"
             local position = sectionConfig.Position or "Left"
 
-            -- Container da section
             local sectionFrame = create("Frame", {
                 Size = UDim2.new(1, 0, 0, 32),
                 BackgroundTransparency = 1,
                 Parent = tabContent
             })
 
-            -- Título da section
             local sectionTitle = create("TextLabel", {
                 Size = UDim2.new(0.9, 0, 0, 24),
                 Position = UDim2.new(
@@ -554,7 +540,6 @@ function DoorLib:MakeWindow(config)
                 Parent = sectionFrame
             })
 
-            -- Linha abaixo da section
             create("Frame", {
                 Size = UDim2.new(0.9, 0, 0, 1),
                 Position = UDim2.new(0.05, 0, 0, 28),
@@ -564,6 +549,11 @@ function DoorLib:MakeWindow(config)
             })
 
             return sectionFrame
+        end
+
+        function Tab:AddElement(element)
+            element.Parent = tabContent
+            element.LayoutOrder = #tabContent:GetChildren()
         end
 
         table.insert(Window.Tabs, Tab)
@@ -576,6 +566,317 @@ function DoorLib:MakeWindow(config)
         end
 
         return Tab
+    end
+
+    -- Funções úteis
+    function Window:AddPlayerInfo()
+        local playerInfo = create("Frame", {
+            Size = UDim2.new(0, 170, 0, 55),
+            Position = UDim2.new(0, 15, 1, -70),
+            BackgroundTransparency = 0.2,
+            BackgroundColor3 = theme.PlayerInfo,
+            BorderSizePixel = 0,
+            Parent = tabContainer
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = playerInfo })
+        create("UIStroke", { Color = Color3.fromRGB(80, 80, 100), Thickness = 1, Transparency = 0.5, Parent = playerInfo })
+
+        local avatar = create("ImageLabel", {
+            Size = UDim2.new(0, 32, 0, 32),
+            Position = UDim2.new(0, 8, 0, 11),
+            BackgroundTransparency = 1,
+            Image = "rbxasset://textures/ui/DefaultAvatar.png",
+            Parent = playerInfo
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 16), Parent = avatar })
+
+        local success, thumbnail = pcall(function()
+            return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+        end)
+        if success and thumbnail then
+            avatar.Image = thumbnail
+        end
+
+        create("TextLabel", {
+            Size = UDim2.new(0, 120, 0, 18),
+            Position = UDim2.new(0, 45, 0, 8),
+            BackgroundTransparency = 1,
+            Text = player.DisplayName,
+            TextColor3 = theme.Text,
+            TextSize = 14,
+            Font = Enum.Font.GothamSemibold,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Parent = playerInfo
+        })
+
+        create("TextLabel", {
+            Size = UDim2.new(0, 120, 0, 16),
+            Position = UDim2.new(0, 45, 0, 28),
+            BackgroundTransparency = 1,
+            Text = "@" .. player.Name,
+            TextColor3 = theme.SubText,
+            TextSize = 12,
+            Font = Enum.Font.Gotham,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Parent = playerInfo
+        })
+
+        return playerInfo
+    end
+
+    function Window:AddKeySystem(config)
+        config = config or {}
+        local keyBox = create("Frame", {
+            Size = UDim2.new(0, 170, 0, 40),
+            Position = UDim2.new(0, 15, 1, -110),
+            BackgroundTransparency = 0.2,
+            BackgroundColor3 = theme.PlayerInfo,
+            BorderSizePixel = 0,
+            Parent = tabContainer
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = keyBox })
+        create("UIStroke", { Color = Color3.fromRGB(80, 80, 100), Thickness = 1, Transparency = 0.5, Parent = keyBox })
+
+        create("TextLabel", {
+            Size = UDim2.new(0, 100, 0, 18),
+            Position = UDim2.new(0, 10, 0, 8),
+            BackgroundTransparency = 1,
+            Text = "Chave:",
+            TextColor3 = theme.Text,
+            TextSize = 14,
+            Font = Enum.Font.Gotham,
+            Parent = keyBox
+        })
+
+        local keyInput = create("TextBox", {
+            Size = UDim2.new(0.8, 0, 0, 20),
+            Position = UDim2.new(0, 10, 0, 28),
+            BackgroundTransparency = 0.4,
+            BackgroundColor3 = theme.TabButton,
+            BorderSizePixel = 0,
+            PlaceholderText = "Insira a chave...",
+            Text = "",
+            TextColor3 = theme.SubText,
+            TextSize = 12,
+            Font = Enum.Font.Gotham,
+            ClearTextOnFocus = false,
+            Parent = keyBox
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = keyInput })
+
+        return keyBox, keyInput
+    end
+
+    function Window:AddDivider()
+        local divider = create("Frame", {
+            Size = UDim2.new(0.9, 0, 0, 1),
+            BackgroundTransparency = 0,
+            BackgroundColor3 = theme.Border,
+            Parent = mainContentFrame
+        })
+        return divider
+    end
+
+    function Window:AddButton(config)
+        config = config or {}
+        local button = create("TextButton", {
+            Size = UDim2.new(0.9, 0, 0, 30),
+            Position = UDim2.new(0.05, 0, 0, 8),
+            BackgroundTransparency = 0.4,
+            BackgroundColor3 = theme.Accent,
+            BorderSizePixel = 0,
+            Text = config.Text or "Botão",
+            TextColor3 = theme.Text,
+            TextSize = 14,
+            Font = Enum.Font.Gotham,
+            Parent = mainContentFrame
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = button })
+
+        if config.Callback then
+            button.MouseButton1Click:Connect(config.Callback)
+        end
+
+        return button
+    end
+
+    function Window:AddToggle(config)
+        config = config or {}
+        local toggle = create("TextButton", {
+            Size = UDim2.new(0.9, 0, 0, 30),
+            Position = UDim2.new(0.05, 0, 0, 8),
+            BackgroundTransparency = 0.4,
+            BackgroundColor3 = config.Enabled and theme.Accent or theme.Border,
+            BorderSizePixel = 0,
+            Text = config.Text or "Toggle",
+            TextColor3 = theme.Text,
+            TextSize = 14,
+            Font = Enum.Font.Gotham,
+            Parent = mainContentFrame
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = toggle })
+
+        toggle.MouseButton1Click:Connect(function()
+            config.Enabled = not config.Enabled
+            toggle.BackgroundColor3 = config.Enabled and theme.Accent or theme.Border
+        end)
+
+        return toggle
+    end
+
+    function Window:AddSlider(config)
+        config = config or {}
+        local slider = create("Frame", {
+            Size = UDim2.new(0.9, 0, 0, 30),
+            Position = UDim2.new(0.05, 0, 0, 8),
+            BackgroundTransparency = 0.4,
+            BackgroundColor3 = theme.TabButton,
+            BorderSizePixel = 0,
+            Parent = mainContentFrame
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = slider })
+
+        local valueLabel = create("TextLabel", {
+            Size = UDim2.new(0.3, 0, 0, 20),
+            Position = UDim2.new(0, 0, 0, 5),
+            BackgroundTransparency = 1,
+            Text = config.Value or "0",
+            TextColor3 = theme.Text,
+            TextSize = 14,
+            Font = Enum.Font.Gotham,
+            Parent = slider
+        })
+
+        local scrollFrame = create("ScrollingFrame", {
+            Size = UDim2.new(0.6, 0, 0, 20),
+            Position = UDim2.new(0.3, 0, 0, 5),
+            BackgroundTransparency = 1,
+            CanvasSize = UDim2.new(0, 100, 0, 0),
+            ScrollBarThickness = 0,
+            Parent = slider
+        })
+
+        local handle = create("TextButton", {
+            Size = UDim2.new(0, 20, 0, 20),
+            BackgroundTransparency = 0,
+            BackgroundColor3 = theme.Accent,
+            BorderSizePixel = 0,
+            Text = "",
+            Parent = scrollFrame
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 10), Parent = handle })
+
+        handle.Position = UDim2.new(0, 0, 0, 0)
+
+        handle.MouseButton1Down:Connect(function()
+            local start = handle.Position.X.Offset
+            local conn = UserInputService.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local delta = input.Position.X - start
+                    local newOffset = math.clamp(delta, 0, 100)
+                    handle.Position = UDim2.new(0, newOffset, 0, 0)
+                    valueLabel.Text = math.floor((newOffset / 100) * (config.Max or 100))
+                end
+            end)
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    conn:Disconnect()
+                end
+            end)
+        end)
+
+        return slider, valueLabel, handle
+    end
+
+    function Window:AddTextbox(config)
+        config = config or {}
+        local textbox = create("TextBox", {
+            Size = UDim2.new(0.9, 0, 0, 30),
+            Position = UDim2.new(0.05, 0, 0, 8),
+            BackgroundTransparency = 0.4,
+            BackgroundColor3 = theme.TabButton,
+            BorderSizePixel = 0,
+            PlaceholderText = config.Placeholder or "",
+            Text = config.Text or "",
+            TextColor3 = theme.Text,
+            TextSize = 14,
+            Font = Enum.Font.Gotham,
+            Parent = mainContentFrame
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = textbox })
+
+        return textbox
+    end
+
+    function Window:AddDropdown(config)
+        config = config or {}
+        local dropdown = create("TextButton", {
+            Size = UDim2.new(0.9, 0, 0, 30),
+            Position = UDim2.new(0.05, 0, 0, 8),
+            BackgroundTransparency = 0.4,
+            BackgroundColor3 = theme.TabButton,
+            BorderSizePixel = 0,
+            Text = config.Options[1] or "",
+            TextColor3 = theme.Text,
+            TextSize = 14,
+            Font = Enum.Font.Gotham,
+            Parent = mainContentFrame
+        })
+
+        create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = dropdown })
+
+        local options = config.Options or {}
+        local selected = 1
+
+        dropdown.MouseButton1Click:Connect(function()
+            for i, option in ipairs(options) do
+                if option == dropdown.Text then
+                    selected = i
+                end
+            end
+            selected = selected % #options + 1
+            dropdown.Text = options[selected]
+        end)
+
+        return dropdown
+    end
+
+    function Window:AddLabel(config)
+        config = config or {}
+        local label = create("TextLabel", {
+            Size = UDim2.new(0.9, 0, 0, 20),
+            Position = UDim2.new(0.05, 0, 0, 8),
+            BackgroundTransparency = 1,
+            Text = config.Text or "",
+            TextColor3 = theme.Text,
+            TextSize = 14,
+            Font = Enum.Font.Gotham,
+            Parent = mainContentFrame
+        })
+        return label
+    end
+
+    function Window:AddImage(config)
+        config = config or {}
+        local image = create("ImageLabel", {
+            Size = UDim2.new(0.9, 0, 0, 30),
+            Position = UDim2.new(0.05, 0, 0, 8),
+            BackgroundTransparency = 1,
+            Image = config.Image or "rbxasset://textures/ui/DefaultAvatar.png",
+            Parent = mainContentFrame
+        })
+        return image
     end
 
     -- Minimizar
